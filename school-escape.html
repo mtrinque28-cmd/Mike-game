@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>School Escape</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#000; overflow:hidden; font-family:Arial,sans-serif; }
+  canvas { display:block; }
+
+  /* ── HUD ── */
+  #hud { position:fixed; top:0; left:0; right:0; pointer-events:none; z-index:10; }
+  #top-bar { display:flex; justify-content:space-between; align-items:flex-start; padding:16px 24px; }
+  #keys-display { background:rgba(0,0,0,0.6); border:2px solid #f0c040; border-radius:8px; padding:8px 14px; color:#f0c040; font-size:15px; font-weight:bold; }
+  #alert-box { background:rgba(180,0,0,0.85); border:2px solid #ff4444; border-radius:8px; padding:8px 14px; color:#fff; font-size:15px; font-weight:bold; opacity:0; transition:opacity 0.3s; }
+  #alert-box.visible { opacity:1; }
+  #timer-display {
+    background:rgba(0,0,0,0.6); border:2px solid #55aaff; border-radius:8px;
+    padding:8px 14px; color:#55aaff; font-size:15px; font-weight:bold;
+    font-variant-numeric: tabular-nums; letter-spacing:1px; min-width:90px; text-align:center;
+  }
+  #status-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); border:1px solid #555; border-radius:8px; padding:8px 20px; color:#ccc; font-size:13px; pointer-events:none; z-index:10; text-align:center; }
+
+  /* ── STAMINA BAR ── */
+  #stamina-bar {
+    position:fixed; bottom:70px; left:50%; transform:translateX(-50%);
+    pointer-events:none; z-index:10; text-align:center; width:200px;
+  }
+  #stamina-label { color:#bbb; font-size:11px; letter-spacing:1px; margin-bottom:3px; }
+  #stamina-track { position:relative; width:200px; height:7px; background:rgba(0,0,0,0.55); border:1px solid #555; border-radius:4px; overflow:hidden; }
+  #stamina-fill  { height:100%; width:100%; border-radius:4px; transition:background 0.3s; }
+  /* notch at 30% — the minimum recharge needed before sprinting unlocks */
+  #stamina-notch { position:absolute; top:-2px; bottom:-2px; left:30%; width:2px; background:rgba(255,255,255,0.7); pointer-events:none; }
+  /* ── CROUCH INDICATOR ── */
+  #crouch-indicator {
+    position:fixed; bottom:70px; left:50%;
+    transform:translateX(calc(-50% - 130px));
+    pointer-events:none; z-index:10; text-align:center;
+  }
+  #crouch-key {
+    display:inline-block; width:26px; height:26px; line-height:26px;
+    background:rgba(0,0,0,0.55); border:1px solid #555; border-radius:4px;
+    color:#bbb; font-size:13px; font-weight:bold; font-family:monospace;
+    text-align:center;
+  }
+  #crouch-key.active { border-color:#88ddaa; color:#88ddaa; background:rgba(0,80,40,0.5); }
+  #crouch-label { color:#bbb; font-size:11px; letter-spacing:1px; margin-top:3px; }
+
+  /* ── MINIMAP ── */
+  #minimap { position:fixed; bottom:24px; right:24px; width:140px; height:140px; background:rgba(0,0,0,0.7); border:2px solid #555; border-radius:6px; z-index:10; }
+
+  /* ── MAP OVERLAY ── */
+  #map-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.88);
+    display:none; flex-direction:column; align-items:center; justify-content:center; z-index:25;
+  }
+  #map-overlay.active { display:flex; }
+  #map-overlay h2 { color:#f0c040; font-size:20px; margin-bottom:14px; }
+  #big-map { border:2px solid #555; border-radius:8px; }
+  #map-overlay .map-hint { color:#888; font-size:13px; margin-top:10px; }
+
+  /* ── ENCOUNTER POPUP ── */
+  #encounter { position:fixed; inset:0; background:rgba(0,0,0,0.78); display:none; align-items:center; justify-content:center; z-index:30; }
+  #encounter.active { display:flex; }
+  #encounter-box { background:#1a1a2e; border:2px solid #e0b040; border-radius:14px; padding:28px 36px; max-width:520px; width:90%; text-align:center; color:#fff; }
+  #encounter-box h2 { font-size:22px; color:#f0c040; margin-bottom:6px; }
+  #encounter-box .teacher-tag { display:inline-block; font-size:12px; font-weight:bold; padding:3px 10px; border-radius:20px; margin-bottom:12px; }
+  #encounter-box .quote { font-style:italic; color:#ddd; margin-bottom:20px; font-size:15px; line-height:1.5; border-left:3px solid #e0b040; padding-left:12px; text-align:left; }
+  #encounter-box .hint { font-size:12px; color:#888; margin-bottom:16px; }
+  #encounter-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .enc-btn { padding:11px 8px; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; transition:filter 0.15s; line-height:1.3; }
+  .enc-btn:hover { filter:brightness(1.15); }
+  .enc-btn.run   { background:#e06030; color:#fff; }
+  .enc-btn.talk  { background:#3070c0; color:#fff; }
+  .enc-btn.flirt { background:#c040a0; color:#fff; }
+  .enc-btn.shove { background:#555;    color:#ccc; }
+
+  /* ── OUTCOME TOAST ── */
+  #outcome { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); border-radius:12px; padding:20px 30px; color:#fff; font-size:17px; text-align:center; z-index:35; display:none; max-width:400px; line-height:1.5; pointer-events:none; }
+
+  /* ── CLOSET CUTSCENE ── */
+  #cutscene { position:fixed; inset:0; background:#000; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:40; color:#fff; }
+  #cutscene.active { display:flex; }
+  #cutscene-inner { max-width:540px; text-align:center; }
+  .cs-speaker { font-size:13px; font-weight:bold; color:#c060c0; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
+  .cs-line { font-size:18px; line-height:1.6; color:#eee; min-height:60px; transition:opacity 0.5s; }
+  .cs-action { font-size:14px; color:#888; font-style:italic; margin-top:10px; min-height:24px; }
+  .cs-bar { display:block; width:200px; height:4px; background:#333; border-radius:2px; overflow:hidden; margin:30px auto 0; }
+  .cs-bar-fill { height:100%; background:#c060c0; width:0%; transition:width linear; }
+
+  /* ── SETTINGS MENU ── */
+  #settings {
+    position:fixed; inset:0; background:rgba(0,0,0,0.82);
+    display:none; align-items:center; justify-content:center; z-index:28;
+  }
+  #settings.active { display:flex; }
+  #settings-box {
+    background:#1a1a2e; border:2px solid #4488cc; border-radius:14px;
+    padding:30px 40px; min-width:340px; color:#fff;
+  }
+  #settings-box h2 { font-size:20px; color:#88bbff; margin-bottom:22px; text-align:center; }
+  .setting-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:16px; }
+  .setting-row label { font-size:14px; color:#ccc; white-space:nowrap; }
+  .setting-row input[type=range] { flex:1; accent-color:#4488cc; }
+  .setting-row select { background:#2a2a4e; color:#fff; border:1px solid #4488cc; border-radius:6px; padding:4px 8px; font-size:14px; }
+  #sens-value { font-size:13px; color:#88bbff; min-width:32px; text-align:right; }
+  #close-settings { display:block; width:100%; padding:10px; margin-top:8px; background:#4488cc; color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; }
+  #close-settings:hover { background:#5599dd; }
+  .settings-hint { font-size:12px; color:#666; text-align:center; margin-top:10px; }
+
+  /* ── START / END SCREENS ── */
+  #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; color:#fff; }
+  #overlay h1 { font-size:48px; color:#f0c040; margin-bottom:12px; }
+  #overlay p  { font-size:15px; color:#ccc; margin-bottom:6px; max-width:480px; text-align:center; }
+  #overlay .controls { margin:14px 0; font-size:14px; color:#aaa; line-height:1.9; }
+  #overlay .controls span { color:#fff; font-weight:bold; }
+  #start-btn { margin-top:18px; padding:12px 36px; font-size:18px; background:#f0c040; color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+  #start-btn:hover { background:#ffd700; }
+  #game-over { position:fixed; inset:0; background:rgba(100,0,0,0.88); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:20; color:#fff; }
+  #game-over h1 { font-size:52px; color:#ff4444; margin-bottom:10px; }
+  #game-over p  { font-size:17px; color:#ddd; margin-bottom:24px; }
+  #win-screen { position:fixed; inset:0; background:rgba(0,80,0,0.88); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:20; color:#fff; }
+  #win-screen h1 { font-size:52px; color:#44ff44; margin-bottom:10px; }
+  #win-screen p  { font-size:17px; color:#ccc; margin-bottom:24px; }
+  .restart-btn { padding:12px 36px; font-size:18px; background:#fff; color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+  .legend { margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; justify-content:center; }
+  .legend-item { font-size:12px; color:#aaa; display:flex; align-items:center; gap:5px; }
+  .legend-dot  { width:10px; height:10px; border-radius:50%; }
+
+  /* ── DOOR PROMPT ── */
+  #door-prompt {
+    position:fixed; bottom:130px; left:50%; transform:translateX(-50%);
+    pointer-events:none; z-index:15; display:none; text-align:center;
+  }
+  #door-prompt .dp-label {
+    color:#888; font-size:13px; letter-spacing:2px; text-transform:uppercase;
+    margin-top:8px; opacity:1;
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div id="top-bar">
+    <div id="keys-display">🔑 Keys: <span id="key-count">0</span> / <span id="key-total">5</span></div>
+    <div id="alert-box">⚠️ Teacher spotted you!</div>
+    <div id="timer-display">⏱ 0:00</div>
+  </div>
+</div>
+<div id="status-bar">Collect all keys then reach the EXIT</div>
+<div id="crouch-indicator">
+  <div id="crouch-key">C</div>
+  <div id="crouch-label">CROUCH</div>
+</div>
+<div id="stamina-bar">
+  <div id="stamina-label">⚡ SPRINT</div>
+  <div id="stamina-track"><div id="stamina-fill"></div><div id="stamina-notch"></div></div>
+</div>
+<canvas id="minimap"></canvas>
+
+<!-- MAP OVERLAY -->
+<div id="map-overlay">
+  <h2>🗺️ School Map</h2>
+  <canvas id="big-map" width="520" height="420"></canvas>
+  <div class="map-hint">Press M to close</div>
+</div>
+
+<!-- ENCOUNTER -->
+<div id="encounter">
+  <div id="encounter-box">
+    <h2 id="enc-title">Teacher Spotted You!</h2>
+    <div id="enc-tag" class="teacher-tag"></div>
+    <div id="enc-quote" class="quote"></div>
+    <div id="enc-hint"  class="hint"></div>
+    <div id="encounter-actions">
+      <button class="enc-btn run"   onclick="resolveEncounter('run')">🏃 Run</button>
+      <button class="enc-btn talk"  onclick="resolveEncounter('talk')">🗣️ Talk Your Way Out</button>
+      <button class="enc-btn flirt" onclick="resolveEncounter('flirt')">😏 Flirt</button>
+      <button class="enc-btn shove" onclick="resolveEncounter('shove')">💢 Shove Past</button>
+    </div>
+  </div>
+</div>
+
+<!-- OUTCOME TOAST -->
+<div id="outcome"></div>
+
+<!-- DOOR PROMPT -->
+<div id="door-prompt">
+  <svg width="62" height="62" style="display:block;margin:0 auto">
+    <circle cx="31" cy="31" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5"/>
+    <circle id="door-arc" cx="31" cy="31" r="25" fill="none" stroke="#777" stroke-width="5"
+            stroke-dasharray="0 157.1" stroke-linecap="round"
+            transform="rotate(-90 31 31)"/>
+  </svg>
+  <div class="dp-label">Hold E — Unlock door</div>
+</div>
+
+<!-- CLOSET CUTSCENE -->
+<div id="cutscene">
+  <div id="cutscene-inner">
+    <div class="cs-speaker" id="cs-speaker"></div>
+    <div class="cs-line"    id="cs-line"></div>
+    <div class="cs-action"  id="cs-action"></div>
+    <div class="cs-bar"><div class="cs-bar-fill" id="cs-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- SETTINGS MENU -->
+<div id="settings">
+  <div id="settings-box">
+    <h2>⚙️ Settings</h2>
+    <div class="setting-row">
+      <label>Mouse Sensitivity</label>
+      <input type="range" id="sens-slider" min="1" max="10" value="3" step="1" oninput="updateSensitivity(this.value)">
+      <span id="sens-value">3</span>
+    </div>
+    <div class="setting-row">
+      <label>Field of View</label>
+      <input type="range" id="fov-slider" min="60" max="120" value="100" step="1" oninput="updateFOV(this.value)">
+      <span id="fov-value">100</span>
+    </div>
+    <div class="setting-row">
+      <label>Camera Perspective</label>
+      <select id="persp-select" onchange="updatePerspective(this.value)">
+        <option value="3rd">3rd Person</option>
+        <option value="1st">1st Person</option>
+      </select>
+    </div>
+    <button id="close-settings" onclick="closeSettings()">▶ Resume Game</button>
+    <div class="settings-hint">Press Enter / Return to toggle settings</div>
+  </div>
+</div>
+
+<!-- START SCREEN -->
+<div id="overlay">
+  <h1>🏫 School Escape</h1>
+  <p>Trapped after hours. Collect 3 keys, then sneak to the EXIT without getting busted by hall monitors!</p>
+  <div class="controls">
+    <span>WASD / Arrows</span> — Move &nbsp;|&nbsp; <span>Mouse</span> — Look / Camera<br>
+    <span>Shift</span> — Sprint (1 s, 8 s recharge) &nbsp;|&nbsp; <span>C</span> — Crouch / Sneak<br>
+    <span>E</span> (hold) — Open / Close door &nbsp;|&nbsp; <span>M</span> — Map &nbsp;|&nbsp; <span>Enter</span> — Pause / Settings<br>
+    When caught: <span>Run · Talk · Flirt · Shove</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4477cc"></div> Male teacher</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#cc4488"></div> Female teacher</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c060c0"></div> Ms. Rivera</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffd700"></div> Key</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#44ff44"></div> Exit</div>
+  </div>
+  <button id="start-btn" onclick="startGame()">Start Game</button>
+</div>
+
+<div id="game-over">
+  <h1>BUSTED!</h1>
+  <p id="go-msg">A teacher caught you. Better luck next time!</p>
+  <button class="restart-btn" onclick="restartGame()">Try Again</button>
+</div>
+<div id="win-screen">
+  <h1>YOU ESCAPED!</h1>
+  <p id="win-msg">You snuck out successfully!</p>
+  <button class="restart-btn" onclick="restartGame()">Play Again</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+// ─── TEACHER TYPES ────────────────────────────────────────────────────────────
+const TEACHER_TYPES = [
+  { id:'davis',    name:'Mr. Davis',    gender:'male',   bodyColor:0x334488, headColor:0xffcc88,
+    patrolSpeed:0.030, chaseSpeed:0.068, detectionRange:8.0, sneakRange:4.5,
+    talkChance:0.78, flirtChance:0.15,
+    quote:'Hey! Where do you think you\'re going at this hour?',
+    talkWin:'Mr. Davis sighs. "Fine, just get to the bus. Don\'t let me catch you again."',
+    talkFail:'Mr. Davis narrows his eyes. "That excuse doesn\'t cut it. Come with me."',
+    flirtWin:'Mr. Davis looks confused. "Uh… thanks? Just… go home, kid."',
+    flirtFail:'Mr. Davis frowns. "That\'s very inappropriate. Principal\'s office. Now."' },
+  { id:'thompson', name:'Mr. Thompson', gender:'male',   bodyColor:0x223366, headColor:0xffcc88,
+    patrolSpeed:0.033, chaseSpeed:0.072, detectionRange:7.5, sneakRange:4.0,
+    talkChance:0.68, flirtChance:0.12,
+    quote:'Stop right there! This building is closed!',
+    talkWin:'Mr. Thompson scratches his head. "Alright — forgotten item, I get it. Out you go."',
+    talkFail:'Mr. Thompson crosses his arms. "I wasn\'t born yesterday. You\'re coming with me."',
+    flirtWin:'Mr. Thompson turns red. "What — no — just… go home!"',
+    flirtFail:'Mr. Thompson blows his whistle. "UNACCEPTABLE. Office. Immediately."' },
+  { id:'harris',   name:'Ms. Harris',   gender:'female', personality:'strict', bodyColor:0x882244, headColor:0xffcc88,
+    patrolSpeed:0.042, chaseSpeed:0.058, detectionRange:9.5, sneakRange:5.5,
+    talkChance:0.22, flirtChance:0.08,
+    quote:'I have eyes everywhere. You cannot escape me. Explain yourself.',
+    talkWin:'Ms. Harris pauses. "…Very well. But I\'m calling your parents in the morning."',
+    talkFail:'Ms. Harris smirks. "Nice try. I\'ve heard every excuse in the book."',
+    flirtWin:'Ms. Harris raises an eyebrow. "How… bizarre. Get out of my school."',
+    flirtFail:'Ms. Harris\'s eye twitches. "Detention. Three weeks. MOVE."' },
+  { id:'rivera',   name:'Ms. Rivera',   gender:'female', personality:'friendly', bodyColor:0xaa3399, headColor:0xffcc88,
+    patrolSpeed:0.038, chaseSpeed:0.048, detectionRange:7.0, sneakRange:3.8,
+    talkChance:0.62, flirtChance:0.95, closetScene:true,
+    quote:'Oh! I didn\'t expect to see you here after hours…',
+    talkWin:'Ms. Rivera smiles. "Okay okay, I believe you. Head straight out!"',
+    talkFail:'Ms. Rivera frowns reluctantly. "I\'m sorry, I still have to report this."',
+    flirtWin:'closet',
+    flirtFail:'Ms. Rivera looks startled. "That\'s… very bold. I\'m going to have to report you."' },
+  { id:'chen',     name:'Ms. Chen',     gender:'female', personality:'slow',   bodyColor:0x227766, headColor:0xffcc88,
+    patrolSpeed:0.020, chaseSpeed:0.028, detectionRange:7.0, sneakRange:3.5,
+    talkChance:0.55, flirtChance:0.38,
+    quote:'Wait… you there! Come back here… please…',
+    talkWin:'Ms. Chen catches her breath. "Okay… I\'ll let it go… just go…"',
+    talkFail:'Ms. Chen shakes her head. "I… still have to write this up. Sorry."',
+    flirtWin:'Ms. Chen laughs. "You\'re too much. Go on, scram before I change my mind."',
+    flirtFail:'Ms. Chen frowns. "That was uncalled for. To the office."' },
+  { id:'brooks',   name:'Mr. Brooks',   gender:'male',   personality:'strict', bodyColor:0x3d2b1f, headColor:0xffcc88,
+    patrolSpeed:0.025, chaseSpeed:0.055, detectionRange:10.0, sneakRange:6.0,
+    talkChance:0.30, flirtChance:0.05,
+    quote:'This is a library. And you are VERY out of place.',
+    talkWin:'Mr. Brooks adjusts his glasses. "…A forgotten textbook. Fine. Leave. Quietly."',
+    talkFail:'Mr. Brooks slams a book shut. "Do you think I was born yesterday? Move."',
+    flirtWin:'Mr. Brooks stares blankly. "I… what. Please just leave the premises."',
+    flirtFail:'Mr. Brooks points at the door. "Out. Right now. I\'m calling security."' },
+];
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const PLAYER_SPEED  = 0.07;
+const SNEAK_SPEED   = 0.032;
+const SPRINT_SPEED  = 0.112;  // ~1.6× normal (20% slower than before)
+const STAMINA_MAX   = 1.0;    // seconds of sprint
+const STAMINA_REGEN = 1/8;    // per second — full recharge in 8 s
+const CATCH_RANGE   = 0.8;
+const CAM_DIST     = 1.95; // controls camera HEIGHT via sin(pitch)
+const CAM_BACK     = 1.5; // horizontal distance behind player
+const EXIT_Z       = 16.5;    // exit trigger Z — front edge of green glow strip (player bounded to ~17.05)
+const EXIT_X       = 2.5;     // exit trigger half-width
+
+// ─── SETTINGS STATE ───────────────────────────────────────────────────────────
+let mouseSensitivity = 0.001;   // default (was 0.003 — now 3× lower)
+let firstPerson = false;
+let settingsOpen = false;
+let mapOpen = false;
+let camPitch  = 0;             // 1st-person vertical look
+let camPitch3 = 0.65;          // 3rd-person vertical orbit (rad)
+let currentCamDist = CAM_BACK; // smoothed horizontal pullback (wall avoidance)
+let stamina = STAMINA_MAX;     // current stamina (seconds)
+let sprintLocked = false;      // true after hitting 0 — must reach 30% before sprinting again
+let isSprinting  = false;      // true only when actually moving + shifting + stamina > 0
+let animDt = 1/60;             // real delta-time (seconds) updated each frame
+
+// ─── BOOK MECHANIC ────────────────────────────────────────────────────────────
+let holdingBook  = false;
+let bookTimer    = 0;
+let bookCooldown = 0;          // seconds remaining before next pickup allowed (10s recharge)
+let bookActionCooldown = 0;    // brief grace period after pickup/drop before opposite action unlocks
+let bookHoldFrames = 0;        // frames held while picking up (for arc UI)
+let doorActionCooldown = 0;    // brief grace period after door open/close before re-interaction
+const BOOK_DURATION  = 5.0;   // seconds of immunity
+const BOOK_HOLD_FRAMES = 60;  // 1 s at 60 fps to pick up
+// Shelf zones: x of row, z range — player must be within 2 units of x and inside z extent
+const SHELF_ZONES=[
+  {x:32,zMin:-14,zMax:-4},{x:32,zMin:4,zMax:14},
+  {x:36,zMin:-14,zMax:4}, {x:40,zMin:-4,zMax:14},
+];
+function isNearShelf(){
+  const px=playerGroup.position.x,pz=playerGroup.position.z;
+  return SHELF_ZONES.some(s=>Math.abs(px-s.x)<2.0&&pz>s.zMin-1.2&&pz<s.zMax+1.2);
+}
+
+// ─── SCENE ───────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 20, 60);
+
+const camera = new THREE.PerspectiveCamera(100, 1, 0.1, 200);
+
+scene.add(new THREE.AmbientLight(0xfff5e0, 0.55));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.9);
+sun.position.set(15,30,15); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{near:0.5,far:120,left:-50,right:50,top:50,bottom:-50});
+scene.add(sun);
+
+// ─── MATERIALS ────────────────────────────────────────────────────────────────
+const mats = {
+  floor:      new THREE.MeshLambertMaterial({color:0xd4c9a0}),
+  wall:       new THREE.MeshLambertMaterial({color:0xe8e0d0}),
+  ceiling:    new THREE.MeshLambertMaterial({color:0xf5f0e8}),
+  door:       new THREE.MeshLambertMaterial({color:0x8b6914}),
+  exitDoor:   new THREE.MeshLambertMaterial({color:0x228b22}),
+  lockedExit: new THREE.MeshLambertMaterial({color:0x8b0000}),
+  desk:       new THREE.MeshLambertMaterial({color:0xc8a060}),
+  chair:      new THREE.MeshLambertMaterial({color:0x607060}),
+  locker:     new THREE.MeshLambertMaterial({color:0x4a6080}),
+  board:      new THREE.MeshLambertMaterial({color:0x2d5016}),
+  player:     new THREE.MeshLambertMaterial({color:0x4488ff}),
+  key:        new THREE.MeshLambertMaterial({color:0xffd700, emissive:0x886600}),
+  window:     new THREE.MeshLambertMaterial({color:0x88ccff, transparent:true, opacity:0.4}),
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function box(w,h,d,mat,x,y,z) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true;
+  scene.add(m); return m;
+}
+
+const walls = [];
+
+// Wall with collision
+function addWall(w,h,d,x,y,z) {
+  const m = box(w,h,d,mats.wall,x,y,z);
+  walls.push({ minX:x-w/2-0.1, maxX:x+w/2+0.1, minZ:z-d/2-0.1, maxZ:z+d/2+0.1 });
+  return m;
+}
+
+// Solid obstacle (furniture) — same collision, different material
+function solidBox(w,h,d,mat,x,y,z) {
+  const m = box(w,h,d,mat,x,y,z);
+  walls.push({ minX:x-w/2-0.05, maxX:x+w/2+0.05, minZ:z-d/2-0.05, maxZ:z+d/2+0.05 });
+  return m;
+}
+
+// ─── COLLISION ────────────────────────────────────────────────────────────────
+function collidesWithWalls(x,z,r=0.45) {
+  for (const w of walls)
+    if (x+r>w.minX && x-r<w.maxX && z+r>w.minZ && z-r<w.maxZ) return true;
+  return false;
+}
+function moveEntity(pos,dx,dz,r=0.45) {
+  const bz=17.5-r;
+  // Asymmetric x-bounds: main building west + east wing east
+  const nx=Math.max(-21.5+r, Math.min(43.5-r, pos.x+dx));
+  if (!collidesWithWalls(nx,pos.z,r)) pos.x=nx;
+  const nz=Math.max(-bz,Math.min(bz,pos.z+dz));
+  if (!collidesWithWalls(pos.x,nz,r)) pos.z=nz;
+}
+
+// ─── SCHOOL ───────────────────────────────────────────────────────────────────
+function buildSchool() {
+  // Floor + ceiling
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(44,36),mats.floor);
+  fl.rotation.x=-Math.PI/2; fl.receiveShadow=true; scene.add(fl);
+  const cl=new THREE.Mesh(new THREE.PlaneGeometry(44,36),mats.ceiling);
+  cl.rotation.x=Math.PI/2; cl.position.y=4; scene.add(cl);
+
+  // Outer walls — main building
+  addWall(44,4,0.5,  0,2,-18);          // north
+  addWall(0.5,4,36,-22,2,  0);          // west
+  // East wall: split at z=-3 to z=+3 for corridor into the east wing
+  addWall(0.5,4,15, 22,2,-10.5);        // east wall north of gap (z=-18 to -3)
+  addWall(0.5,4,15, 22,2, 10.5);        // east wall south of gap (z=+3 to +18)
+  // South wall: two pieces leaving a 5-unit gap at x=0 for the exit
+  addWall(19,4,0.5,-12,2,18);           // south-west
+  addWall(19,4,0.5, 12,2,18);           // south-east
+
+  // ── EAST WING (Library) ──────────────────────────────────────────────────────
+  // Outer shell
+  addWall(22,4,0.5, 33,2,-18);          // east-wing north wall (x=22–44)
+  addWall(0.5,4,36, 44,2,  0);          // east-wing east wall
+  addWall(22,4,0.5, 33,2, 18);          // east-wing south wall (x=22–44)
+  // Connecting corridor walls — creates a 6-wide, 8-deep hallway from x=22→30
+  addWall(8,4,0.5, 26,2,-3);            // corridor north side
+  addWall(8,4,0.5, 26,2, 3);            // corridor south side
+  // Floor + ceiling for east wing
+  const efl=new THREE.Mesh(new THREE.PlaneGeometry(22,36),mats.floor);
+  efl.rotation.x=-Math.PI/2; efl.position.set(33,0,0); scene.add(efl);
+  const ecl=new THREE.Mesh(new THREE.PlaneGeometry(22,36),mats.ceiling);
+  ecl.rotation.x=Math.PI/2; ecl.position.set(33,4,0); scene.add(ecl);
+  // Library sign above corridor entrance
+  box(3,0.4,0.12,new THREE.MeshLambertMaterial({color:0x2a4a2a}),22,3.6,0);
+  // Windows
+  for(let z=-14;z<=14;z+=7) box(2.5,1.5,0.1,mats.window,43.95,2.5,z); // east wall
+  for(let x=25;x<=43;x+=6){ box(2.5,1.5,0.1,mats.window,x,2.5,-17.95); box(2.5,1.5,0.1,mats.window,x,2.5,17.95); }
+  // Ceiling lights
+  [[28,-8],[28,0],[28,8],[35,-10],[35,0],[35,10],[42,-10],[42,0],[42,10]].forEach(([x,z])=>{
+    const pl=new THREE.PointLight(0xffeecc,0.5,12); pl.position.set(x,4,z); scene.add(pl);
+    box(0.4,0.1,0.4,mats.ceiling,x,3.95,z);
+  });
+  furnishLibrary();
+
+  // Interior hallway dividers (gaps at X=±3 for door passages)
+  addWall(17,4,0.5,-11.5,2,-6);
+  addWall(17,4,0.5, 11.5,2,-6);
+  addWall(17,4,0.5,-11.5,2, 6);
+  addWall(17,4,0.5, 11.5,2, 6);
+  // Vertical room dividers — each split into one piece leaving a ~3.5-unit door gap
+  // North rooms: wall covers z=-17.5 to -10, gap at z=-10 to -6
+  addWall(0.5,4,7.5,-3,2,-13.75);
+  addWall(0.5,4,7.5, 3,2,-13.75);
+  // South rooms: wall covers z=10 to 17.5, gap at z=6 to 10
+  addWall(0.5,4,7.5,-3,2, 13.75);
+  addWall(0.5,4,7.5, 3,2, 13.75);
+
+
+  // Exit door — sits in the gap of the south wall (visual only, no collision)
+  window._exitDoor = box(4.8,3.5,0.2,mats.lockedExit,0,1.75,17.95);
+  // Exit sign
+  box(2.4,0.5,0.1,new THREE.MeshLambertMaterial({color:0xff2200}),0,4.0,17.6);
+
+  // Glowing exit floor strip so player knows where to walk
+  const exitGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(5,1.5),
+    new THREE.MeshLambertMaterial({color:0x004400, emissive:0x002200})
+  );
+  exitGlow.rotation.x=-Math.PI/2; exitGlow.position.set(0,0.01,17.2); scene.add(exitGlow);
+
+  // Classrooms
+  furnishClassroom(-11,-12);  // A — top-left
+  furnishClassroom( 11,-12);  // B — top-right
+  furnishClassroom(-11, 12);  // C — bottom-left
+  furnishOffice(    11, 12);  // Principal's office — bottom-right
+
+  // (lockers removed)
+
+  // Windows
+  for (let x=-18;x<=18;x+=5) box(2.5,1.5,0.1,mats.window,x,2.5,-17.95);
+  for (let z=-14;z<=14;z+=5) box(0.1,1.5,2.5,mats.window,21.95,2.5,z);
+
+  // Ceiling lights
+  [[-10,-10],[0,-10],[10,-10],[-10,0],[0,0],[10,0],[-10,10],[0,10],[10,10]].forEach(([x,z])=>{
+    const pl=new THREE.PointLight(0xffeecc,0.5,12);
+    pl.position.set(x,4,z); scene.add(pl);
+    box(0.4,0.1,0.4,mats.ceiling,x,3.95,z);
+  });
+}
+
+function furnishClassroom(cx,cz) {
+  const zSign = cz<0?1:-1;
+  // Blackboard (visual only, against far wall)
+  box(6,2.2,0.15,mats.board,cx,2.1,cz+zSign*(-5.8));
+  // Teacher desk — solid collision
+  solidBox(2.2,0.8,1,mats.desk,cx,0.4,cz+zSign*(-4.5));
+  // Student desks — solid collision
+  for (let row=0;row<2;row++) for (let col=-1;col<=1;col++) {
+    solidBox(1.2,0.7,0.7,mats.desk,  cx+col*2.5,0.35,cz+zSign*(1.5+row*2));
+    box(0.8,0.6,0.7,mats.chair, cx+col*2.5,0.3, cz+zSign*(2.2+row*2));
+  }
+}
+
+function furnishOffice(cx,cz) {
+  const zSign=cz<0?1:-1;
+  solidBox(3,0.8,1.5,mats.desk,cx,0.4,cz+zSign*(-3));
+  box(0.4,3,4,new THREE.MeshLambertMaterial({color:0x5a3010}),cx+4,1.5,cz); // bookshelf
+  box(1,0.8,1,mats.chair,cx,0.4,cz+zSign*(-1.5));
+}
+
+function furnishLibrary() {
+  const shelfMat = new THREE.MeshLambertMaterial({color:0x7a4f2a});
+  const bookPalette = [0xcc3333,0x3366cc,0x228833,0xcc8822,0x883399,0x226688,0xaa4422,0x336655,0xdd6622,0x22aa88];
+
+  // ── Bookshelf slabs (collidable) ──────────────────────────────────────────────
+  solidBox(0.4,2.2,10, shelfMat, 32,1.1,-9);  // Row 1 north  (z=-14 to -4)
+  solidBox(0.4,2.2,10, shelfMat, 32,1.1, 9);  // Row 1 south  (z= +4 to +14)
+  solidBox(0.4,2.2,18, shelfMat, 36,1.1,-5);  // Row 2        (z=-14 to  +4)
+  solidBox(0.4,2.2,18, shelfMat, 40,1.1, 5);  // Row 3        (z= -4 to +14)
+
+  // ── Horizontal shelf boards (visual only) ─────────────────────────────────────
+  // Two boards inside each slab create 3 visible levels at y≈0.68 and y≈1.42
+  const shelfDefs=[
+    [32,-9,10],[32,9,10],  // row 1 n+s
+    [36,-5,18],[40,5,18],  // row 2 + 3
+  ];
+  shelfDefs.forEach(([sx,sz,depth])=>{
+    box(0.46,0.05,depth, shelfMat, sx,0.68,sz);
+    box(0.46,0.05,depth, shelfMat, sx,1.42,sz);
+  });
+
+  // ── Books on both faces of every shelf segment ────────────────────────────────
+  // Levels: bottom=0.32, middle=1.05, top=1.72 — all sit below the shelf boards above them
+  const bookLevels = [0.32, 1.05, 1.72];
+  function placeBooks(sx, zMin, zMax) {
+    for(const face of [+0.26, -0.26]){   // east (+) and west (-) faces
+      for(const ly of bookLevels){
+        for(let bz=zMin+0.55; bz<zMax-0.4; bz+=1.0){
+          const col=bookPalette[Math.floor(Math.random()*bookPalette.length)];
+          box(0.12, 0.22+Math.random()*0.10, 0.16,
+              new THREE.MeshLambertMaterial({color:col}),
+              sx+face, ly, bz);
+        }
+      }
+    }
+  }
+  placeBooks(32,-14,-4);  // Row 1 north
+  placeBooks(32,  4,14);  // Row 1 south
+  placeBooks(36,-14, 4);  // Row 2
+  placeBooks(40, -4,14);  // Row 3
+
+  // ── Librarian desk at far east end ───────────────────────────────────────────
+  solidBox(2.2,0.8,1, mats.desk, 43,0.4, 0);
+  box(0.9,0.6,0.8, mats.chair, 43,0.3,-1.2);
+  box(0.08,0.5,0.08, new THREE.MeshLambertMaterial({color:0x444444}), 43.7,1.05, 0.2);
+  box(0.4,0.06,0.4, new THREE.MeshLambertMaterial({color:0x336633,emissive:0x114411}), 43.7,1.33, 0.2);
+}
+
+// ─── KEYS ─────────────────────────────────────────────────────────────────────
+// Large pool of safe floor positions across the whole map.
+// Avoids furniture clusters, desks, shelves, and walls.
+const KEY_SPAWN_POOL = [
+  // Main hallway / corridor
+  {x:0,z:0},{x:0,z:-4},{x:0,z:4},{x:-1,z:2},{x:1,z:-2},
+  // Room A (NW)
+  {x:-11,z:-12},{x:-8,z:-9},{x:-15,z:-9},{x:-18,z:-13},{x:-7,z:-14},{x:-14,z:-14},{x:-9,z:-16},
+  // Room B (NE)
+  {x:11,z:-12},{x:8,z:-9},{x:15,z:-9},{x:18,z:-13},{x:7,z:-14},{x:14,z:-14},{x:9,z:-16},
+  // Room C (SW)
+  {x:-11,z:12},{x:-8,z:9},{x:-15,z:9},{x:-18,z:13},{x:-7,z:14},{x:-14,z:14},{x:-9,z:16},
+  // Room D (SE)
+  {x:11,z:12},{x:8,z:9},{x:15,z:9},{x:18,z:13},{x:7,z:14},{x:14,z:14},{x:9,z:16},
+  // Library corridor entrance
+  {x:25,z:0},{x:25,z:-5},{x:25,z:5},
+  // Library — aisle before row 1
+  {x:28,z:-10},{x:28,z:10},{x:28,z:0},
+  // Library — aisle between row 1 & row 2
+  {x:34,z:-10},{x:34,z:5},
+  // Library — aisle between row 2 & row 3
+  {x:38,z:-10},{x:38,z:9},
+  // Library — east of row 3 / far end
+  {x:42,z:-10},{x:42,z:8},{x:43,z:0},
+];
+const keyMeshes=[];
+let keysCollected=0;
+const totalKeys=5;
+
+function spawnKeys() {
+  // Randomly pick 5 from the pool (Fisher-Yates on a copy, then slice)
+  const pool=[...KEY_SPAWN_POOL];
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  pool.slice(0,totalKeys).forEach((pos,i)=>{
+    const m=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.07,8,16),mats.key.clone());
+    m.position.set(pos.x,0.8,pos.z); m.rotation.x=Math.PI/2; m.castShadow=true;
+    m.userData={collected:false,discovered:false,index:i}; scene.add(m); keyMeshes.push(m);
+  });
+}
+
+// ─── PLAYER ───────────────────────────────────────────────────────────────────
+const playerGroup=new THREE.Group(); scene.add(playerGroup);
+const body=new THREE.Mesh(new THREE.BoxGeometry(0.6,1.2,0.4),mats.player);
+body.position.y=0.6; body.castShadow=true; playerGroup.add(body);
+const phead=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.45,0.45),new THREE.MeshLambertMaterial({color:0xffcc88}));
+phead.position.y=1.45; phead.castShadow=true; playerGroup.add(phead);
+const pbp=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.7,0.2),new THREE.MeshLambertMaterial({color:0x224488}));
+pbp.position.set(0,0.75,-0.28); playerGroup.add(pbp);
+// Book held in player's hands (visible only while holding a book)
+const heldBookMesh=new THREE.Mesh(
+  new THREE.BoxGeometry(0.38,0.05,0.28),
+  new THREE.MeshLambertMaterial({color:0x2244aa,emissive:0x111133})
+);
+heldBookMesh.position.set(0,0.88,0.48); heldBookMesh.visible=false; playerGroup.add(heldBookMesh);
+// Book cover detail strip
+const heldBookStrip=new THREE.Mesh(
+  new THREE.BoxGeometry(0.30,0.051,0.08),
+  new THREE.MeshLambertMaterial({color:0xffdd44})
+);
+heldBookStrip.position.set(0,0.88,0.48+0.11); heldBookStrip.visible=false; playerGroup.add(heldBookStrip);
+
+function pickupBook(){
+  holdingBook=true; bookTimer=BOOK_DURATION; bookActionCooldown=0.4;
+  heldBookMesh.visible=true; heldBookStrip.visible=true;
+  showAlert('📖 Reading pose! Teachers ignore you for 5s — hold E to put down',3000);
+}
+function dropBook(){
+  holdingBook=false; bookTimer=0; bookCooldown=10.0; bookActionCooldown=0.4;
+  heldBookMesh.visible=false; heldBookStrip.visible=false;
+  bookHoldFrames=0;
+}
+
+// ─── TEACHERS ─────────────────────────────────────────────────────────────────
+const teachers=[];
+
+function shuffle(arr) {
+  for (let i=arr.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+const PATROL_ROUTES=[
+  [{x:-18,z:-4},{x:-18,z:4},{x:-8,z:4},{x:-8,z:-4}],          // west hallway loop
+  [{x:18,z:4},  {x:18,z:-4},{x:8,z:-4},{x:8,z:4}],            // east hallway loop
+  [{x:-12,z:-4},{x:0,z:-4}, {x:12,z:-4},{x:0,z:4}],           // center sweep
+  [{x:-16,z:-10},{x:-6,z:-10},{x:-6,z:-15},{x:-16,z:-15}],    // Room A (NW classroom)
+  [{x:16,z:10},  {x:6,z:10}, {x:6,z:15}, {x:16,z:15}],       // Room D (SE office)
+  [{x:28,z:0},{x:34,z:-12},{x:43,z:-12},{x:43,z:12},{x:34,z:12}], // Library (east wing)
+];
+
+// Safe hallway spawn positions (all clear of furniture and walls)
+const SAFE_SPAWNS=[
+  {x:-18,z:0},{x:-15,z:0},{x:-12,z:0},{x:-8,z:0},{x:-5,z:0},
+  {x:5,z:0},  {x:8,z:0},  {x:12,z:0}, {x:15,z:0},{x:18,z:0},
+  {x:-18,z:-4},{x:-12,z:-4},{x:-8,z:-4},{x:8,z:-4},{x:12,z:-4},{x:18,z:-4},
+  {x:-18,z:4}, {x:-12,z:4}, {x:-8,z:4}, {x:8,z:4}, {x:12,z:4}, {x:18,z:4},
+  // Library / east wing
+  {x:28,z:0},{x:34,z:-12},{x:34,z:12},{x:42,z:-12},{x:42,z:12},
+];
+
+function makeTeacherMesh(type) {
+  const g=new THREE.Group();
+  const bw=type.gender==='male'?0.72:0.60;
+  const tbody=new THREE.Mesh(new THREE.BoxGeometry(bw,1.3,0.48),new THREE.MeshLambertMaterial({color:type.bodyColor}));
+  tbody.position.y=0.65; tbody.castShadow=true; g.add(tbody);
+  const thead=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.48,0.48),new THREE.MeshLambertMaterial({color:type.headColor}));
+  thead.position.y=1.55; thead.castShadow=true; g.add(thead);
+  const coneMat=new THREE.MeshBasicMaterial({color:0xffff00,transparent:true,opacity:0.18});
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(0.3,1.2,8),coneMat);
+  cone.position.set(0,1.0,0.9); cone.rotation.x=-Math.PI/2.5; g.add(cone);
+  g.userData.coneMat=coneMat; // stored so alerted state can turn it red
+  return g;
+}
+
+function spawnTeachers() {
+  shuffle([...TEACHER_TYPES]).forEach((type,i)=>{
+    const route=PATROL_ROUTES[i], start=route[0];
+    const group=makeTeacherMesh(type);
+    group.position.set(start.x,0,start.z); scene.add(group);
+    teachers.push({type,group,patrol:route,patrolIdx:0,alerted:false,alertTimer:0,stunTimer:0,doorBlockTimer:0});
+  });
+}
+
+function respawnTeacher(t, stayAlerted=false) {
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  const candidates=SAFE_SPAWNS.filter(s=>{
+    const dx=s.x-px, dz=s.z-pz;
+    return Math.sqrt(dx*dx+dz*dz)>=10;
+  });
+  const pool=candidates.length>0 ? candidates : SAFE_SPAWNS;
+  const spawn=pool[Math.floor(Math.random()*pool.length)];
+  t.group.position.set(spawn.x, 0, spawn.z);
+  t.alerted=stayAlerted;
+  t.alertTimer=stayAlerted?200:0;
+  t.stunTimer=0;
+  t.patrolIdx=0;
+}
+
+// ─── INPUT ────────────────────────────────────────────────────────────────────
+const keys={};
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if (!gameRunning && !inEncounter) return;
+  if (e.code==='Enter'||e.code==='NumpadEnter') {
+    e.preventDefault();
+    if (inEncounter) return;
+    settingsOpen ? closeSettings() : openSettings();
+  }
+  if (e.code==='KeyM' && !inEncounter && !settingsOpen) {
+    e.preventDefault();
+    toggleMap();
+  }
+});
+document.addEventListener('keyup',e=>{ keys[e.code]=false; });
+
+let camYaw=0;
+document.addEventListener('mousemove',e=>{
+  if (!gameRunning || inEncounter || settingsOpen || mapOpen) return;
+  camYaw -= e.movementX * mouseSensitivity;
+  if (firstPerson) {
+    camPitch -= e.movementY * mouseSensitivity;
+    camPitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, camPitch));
+  } else {
+    // 3rd-person vertical orbit — use a much smaller multiplier so it's not jumpy
+    camPitch3 -= e.movementY * mouseSensitivity * 0.25;
+    camPitch3 = Math.max(0.25, Math.min(1.70, camPitch3)); // wide range: low floor, high ceiling
+  }
+});
+
+// ─── SETTINGS FUNCTIONS ───────────────────────────────────────────────────────
+function openSettings() {
+  settingsOpen=true;
+  gameRunning=false;
+  _pauseStart=Date.now();                       // record when pause started
+  document.getElementById('settings').classList.add('active');
+  document.exitPointerLock();
+}
+function closeSettings() {
+  settingsOpen=false;
+  if(_pauseStart) { pausedDuration+=Date.now()-_pauseStart; _pauseStart=0; }
+  document.getElementById('settings').classList.remove('active');
+  if (!caught && !escaped) {
+    gameRunning=true;
+    renderer.domElement.requestPointerLock();
+  }
+}
+function updateSensitivity(v) {
+  // slider 1-10 → actual sensitivity 0.0003 - 0.003
+  mouseSensitivity = v * 0.0003;
+  document.getElementById('sens-value').textContent=v;
+}
+function updateFOV(v) {
+  camera.fov = Number(v);
+  camera.updateProjectionMatrix();
+  document.getElementById('fov-value').textContent = v;
+}
+function updatePerspective(v) {
+  firstPerson = (v==='1st');
+  playerGroup.visible = !firstPerson;
+}
+
+// ─── MAP ─────────────────────────────────────────────────────────────────────
+function toggleMap() {
+  mapOpen=!mapOpen;
+  const el=document.getElementById('map-overlay');
+  if (mapOpen) {
+    el.classList.add('active');
+    document.exitPointerLock();   // free cursor while map is visible
+  } else {
+    el.classList.remove('active');
+    if (!caught && !escaped && !settingsOpen) {
+      renderer.domElement.requestPointerLock();
+    }
+  }
+}
+
+function drawBigMap() {
+  const c=document.getElementById('big-map');
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+
+  // World spans x=-22..+44 (w=66), z=-18..+18 (h=36)
+  const toM=(wx,wz)=>({ x:20+(wx+22)/66*(W-40), y:20+(wz+18)/36*(H-40) });
+
+  // Main building border
+  const mbTL=toM(-22,-18), mbBR=toM(22,18);
+  ctx.strokeStyle='#555'; ctx.lineWidth=2;
+  ctx.strokeRect(mbTL.x,mbTL.y,mbBR.x-mbTL.x,mbBR.y-mbTL.y);
+  // East wing border
+  const ewTL=toM(22,-18), ewBR=toM(44,18);
+  ctx.strokeStyle='#446644'; ctx.lineWidth=2;
+  ctx.strokeRect(ewTL.x,ewTL.y,ewBR.x-ewTL.x,ewBR.y-ewTL.y);
+
+  // Room fills
+  const rooms=[[-20,-18,-3,-6],[3,-18,20,-6],[-20,6,-3,18],[3,6,20,18]];
+  const roomLabels=['Classroom A','Classroom B','Classroom C',"Principal's Office"];
+  rooms.forEach(([x1,z1,x2,z2],i)=>{
+    const a=toM(x1,z1), b=toM(x2,z2);
+    ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(a.x,a.y,b.x-a.x,b.y-a.y);
+    ctx.strokeStyle='#444'; ctx.lineWidth=1; ctx.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    ctx.fillStyle='#666'; ctx.font='11px Arial'; ctx.textAlign='center';
+    ctx.fillText(roomLabels[i],mx,my);
+  });
+  // Library fill
+  const la=toM(22,-18), lb=toM(44,18);
+  ctx.fillStyle='rgba(60,100,60,0.12)'; ctx.fillRect(la.x,la.y,lb.x-la.x,lb.y-la.y);
+  const lm=toM(33,0);
+  ctx.fillStyle='#557755'; ctx.font='11px Arial'; ctx.textAlign='center';
+  ctx.fillText('Library',lm.x,lm.y);
+
+  // Hallway label
+  const hc=toM(0,0);
+  ctx.fillStyle='#444'; ctx.font='12px Arial'; ctx.textAlign='center';
+  ctx.fillText('Main Hallway',hc.x,hc.y+4);
+
+  // Keys — only show ones the player has discovered (been near)
+  keyMeshes.forEach(km=>{
+    if (km.userData.collected || !km.userData.discovered) return;
+    const p=toM(km.position.x,km.position.z);
+    ctx.fillStyle='#ffd700';
+    ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
+    ctx.fillText('K',p.x,p.y+3);
+  });
+
+  // Exit
+  const ep=toM(0,17.9);
+  ctx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
+  ctx.fillRect(ep.x-14,ep.y-6,28,12);
+  ctx.fillStyle='#fff'; ctx.font='bold 10px Arial'; ctx.textAlign='center';
+  ctx.fillText('EXIT',ep.x,ep.y+4);
+
+  // Teachers
+  teachers.forEach(t=>{
+    const p=toM(t.group.position.x,t.group.position.z);
+    const col=t.alerted?'#ff3333':t.type.id==='rivera'?'#cc55cc':t.type.gender==='male'?'#4477cc':'#cc4488';
+    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 8px Arial'; ctx.textAlign='center';
+    ctx.fillText(t.type.name.split(' ')[1][0],p.x,p.y+3);
+  });
+
+  // Player
+  const pp=toM(playerGroup.position.x,playerGroup.position.z);
+  ctx.fillStyle='#4488ff'; ctx.beginPath(); ctx.arc(pp.x,pp.y,8,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#88bbff'; ctx.lineWidth=2; ctx.beginPath();
+  ctx.moveTo(pp.x,pp.y);
+  ctx.lineTo(pp.x+Math.sin(camYaw)*16, pp.y+Math.cos(camYaw)*16);
+  ctx.stroke();
+  // "YOU" label
+  ctx.fillStyle='#88bbff'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
+  ctx.fillText('YOU',pp.x,pp.y-11);
+
+  // Legend
+  ctx.font='11px Arial'; ctx.textAlign='left';
+  const leg=[['#4477cc','Male teacher'],['#cc4488','Female teacher'],['#cc55cc','Ms. Rivera'],['#ffd700','Key'],['#4488ff','You']];
+  leg.forEach(([col,label],i)=>{
+    ctx.fillStyle=col; ctx.fillRect(24, H-38-i*18, 10, 10);
+    ctx.fillStyle='#aaa'; ctx.fillText(label, 38, H-30-i*18);
+  });
+}
+
+// ─── MINIMAP ─────────────────────────────────────────────────────────────────
+const miniCanvas=document.getElementById('minimap');
+const miniCtx=miniCanvas.getContext('2d');
+miniCanvas.width=miniCanvas.height=140;
+
+// World spans x=-22..+44 (w=66), z=-18..+18 (h=36)
+function toMini(wx,wz){ return{x:10+(wx+22)/66*120,y:10+(wz+18)/36*120}; }
+
+function drawMinimap() {
+  miniCtx.clearRect(0,0,140,140);
+  miniCtx.fillStyle='rgba(0,0,0,0.7)'; miniCtx.fillRect(0,0,140,140);
+  // Main building outline
+  miniCtx.strokeStyle='#888'; miniCtx.lineWidth=1.5;
+  const ma=toMini(-22,-18),mb=toMini(22,18);
+  miniCtx.strokeRect(ma.x,ma.y,mb.x-ma.x,mb.y-ma.y);
+  // East wing outline
+  miniCtx.strokeStyle='#446644'; miniCtx.lineWidth=1.2;
+  const ea=toMini(22,-18),eb=toMini(44,18);
+  miniCtx.strokeRect(ea.x,ea.y,eb.x-ea.x,eb.y-ea.y);
+  miniCtx.strokeStyle='#555'; miniCtx.lineWidth=0.8;
+  [[-20,-18,-3,-6],[3,-18,20,-6],[-20,6,-3,18],[3,6,20,18]].forEach(([x1,z1,x2,z2])=>{
+    const a=toMini(x1,z1),b=toMini(x2,z2); miniCtx.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);
+  });
+  // Exit marker
+  const ep=toMini(0,18);
+  miniCtx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
+  miniCtx.fillRect(ep.x-6,ep.y-4,12,8);
+  // Keys — only show ones the player has discovered (been near)
+  keyMeshes.forEach(km=>{
+    if (km.userData.collected || !km.userData.discovered) return;
+    const p=toMini(km.position.x,km.position.z);
+    miniCtx.fillStyle='#ffd700'; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,3.5,0,Math.PI*2); miniCtx.fill();
+  });
+  // Teachers
+  teachers.forEach(t=>{
+    const p=toMini(t.group.position.x,t.group.position.z);
+    const col=t.alerted?'#ff2222':t.type.id==='rivera'?'#cc55cc':t.type.gender==='male'?'#4477cc':'#cc4488';
+    miniCtx.fillStyle=col; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,4,0,Math.PI*2); miniCtx.fill();
+  });
+  // Player
+  const pp=toMini(playerGroup.position.x,playerGroup.position.z);
+  miniCtx.fillStyle='#4488ff'; miniCtx.beginPath(); miniCtx.arc(pp.x,pp.y,5,0,Math.PI*2); miniCtx.fill();
+  miniCtx.strokeStyle='#88aaff'; miniCtx.lineWidth=1.5; miniCtx.beginPath();
+  miniCtx.moveTo(pp.x,pp.y);
+  miniCtx.lineTo(pp.x+Math.sin(camYaw)*9, pp.y+Math.cos(camYaw)*9);
+  miniCtx.stroke();
+}
+
+// ─── ALERT ────────────────────────────────────────────────────────────────────
+const alertBox=document.getElementById('alert-box');
+let alertTO=null;
+function showAlert(msg,dur=2500){
+  alertBox.textContent=msg; alertBox.classList.add('visible');
+  clearTimeout(alertTO); alertTO=setTimeout(()=>alertBox.classList.remove('visible'),dur);
+}
+
+// ─── ENCOUNTER SYSTEM ─────────────────────────────────────────────────────────
+let inEncounter=false, activeTeacher=null, playerRunBoost=0, encounterCooldown=0;
+
+function triggerEncounter(teacher) {
+  if (inEncounter||encounterCooldown>0) return;
+  inEncounter=true; activeTeacher=teacher; gameRunning=false;
+  document.exitPointerLock();
+  const t=teacher.type;
+  document.getElementById('enc-title').textContent=`${t.name} caught you!`;
+  const tag=document.getElementById('enc-tag');
+  tag.textContent=t.gender==='male'?'Male Teacher':t.personality==='strict'?'Strict Female Teacher':t.personality==='friendly'?'Friendly Female Teacher':t.personality==='slow'?'Slow Female Teacher':'Female Teacher';
+  tag.style.background=t.gender==='male'?'#334488':t.id==='rivera'?'#994488':'#882244';
+  tag.style.color='#fff';
+  document.getElementById('enc-quote').textContent=`"${t.quote}"`;
+  const hints=[];
+  if (t.gender==='male') hints.push('Males are more lenient — talk first');
+  if (t.personality==='strict') hints.push('Very strict — running may be best');
+  if (t.personality==='slow')   hints.push('She\'s slow — you can outrun her');
+  if (t.personality==='friendly') hints.push('She seems friendly — try flirting 😏');
+  document.getElementById('enc-hint').textContent=hints.join(' · ');
+  document.getElementById('encounter').classList.add('active');
+}
+
+function resolveEncounter(choice) {
+  if (!inEncounter||!activeTeacher) return;
+  document.getElementById('encounter').classList.remove('active');
+  const t=activeTeacher, type=t.type, roll=Math.random();
+  encounterCooldown=200;
+
+  if (choice==='run') {
+    playerRunBoost=200;
+    respawnTeacher(t, true); // teacher respawns far away but stays alerted
+    alertNearbyTeachers(playerGroup.position.x,playerGroup.position.z,14,t);
+    showOutcome('🏃 You bolt down the hallway! Nearby teachers are on alert!','#e06030',()=>resumeGame());
+    return;
+  }
+  if (choice==='shove') {
+    respawnTeacher(t, false);
+    t.stunTimer=240; // dazed even from new position
+    teachers.forEach(o=>{ if(o!==t){o.alerted=true;o.alertTimer=300;} });
+    showOutcome('💢 You shove past! Every teacher is now hunting you!','#888',()=>resumeGame());
+    return;
+  }
+  if (choice==='talk') {
+    if (roll<type.talkChance) { respawnTeacher(t, false); showOutcome(`✅ ${type.talkWin}`,'#44aa44',()=>resumeGame()); }
+    else showOutcome(`❌ ${type.talkFail}`,'#cc2222',()=>triggerGameOver(type.name));
+    return;
+  }
+  if (choice==='flirt') {
+    if (roll<type.flirtChance) {
+      respawnTeacher(t, false);
+      if (type.flirtWin==='closet') showClosetCutscene(type,()=>resumeGame());
+      else showOutcome(`😏 ${type.flirtWin}`,'#aa44aa',()=>resumeGame());
+    } else {
+      alertNearbyTeachers(playerGroup.position.x,playerGroup.position.z,10,t);
+      showOutcome(`😬 ${type.flirtFail}`,'#cc2222',()=>triggerGameOver(type.name));
+    }
+    return;
+  }
+}
+
+function resumeGame() {
+  inEncounter=false; activeTeacher=null; gameRunning=true;
+  renderer.domElement.requestPointerLock();
+}
+function alertNearbyTeachers(x,z,radius,exclude) {
+  teachers.forEach(t=>{ if(t===exclude)return; const dx=t.group.position.x-x,dz=t.group.position.z-z; if(Math.sqrt(dx*dx+dz*dz)<radius){t.alerted=true;t.alertTimer=250;} });
+}
+
+// ─── OUTCOME TOAST ────────────────────────────────────────────────────────────
+const outcomeEl=document.getElementById('outcome');
+let outcomeTO=null;
+function showOutcome(msg,color='#fff',cb=null){
+  outcomeEl.innerHTML=msg; outcomeEl.style.borderTop=`3px solid ${color}`; outcomeEl.style.display='block';
+  clearTimeout(outcomeTO); outcomeTO=setTimeout(()=>{ outcomeEl.style.display='none'; if(cb)cb(); },2500);
+}
+
+// ─── CLOSET CUTSCENE ──────────────────────────────────────────────────────────
+const CLOSET_SCRIPT=[
+  {speaker:'Ms. Rivera', line:'"Oh, you\'re still here? Perfect timing — I need someone to help me grab decorations from the supply closet. Come on!"', action:''},
+  {speaker:'',line:'',action:'She leads you down the hall to the supply closet near the north wing…'},
+  {speaker:'Ms. Rivera',line:'"The streamers are on the top shelf — I can never reach them. Can you grab those boxes too?"',action:''},
+  {speaker:'',line:'',action:'[You help her gather the supplies. She seems genuinely grateful for the help.]'},
+  {speaker:'Ms. Rivera',line:'"You\'re a lifesaver! Honestly, I\'ve been stressing about these decorations all week."',action:''},
+  {speaker:'',line:'',action:'She smiles warmly and hands you a hall pass.'},
+  {speaker:'Ms. Rivera',line:'"I didn\'t see you here tonight. Just… be careful on your way out, okay?"',action:''},
+];
+function showClosetCutscene(type,onFinish) {
+  const el=document.getElementById('cutscene');
+  const spk=document.getElementById('cs-speaker'), ln=document.getElementById('cs-line');
+  const act=document.getElementById('cs-action'), bar=document.getElementById('cs-bar-fill');
+  el.classList.add('active');
+  const total=CLOSET_SCRIPT.reduce((a,s)=>a+(s.line?2800:1800),0);
+  bar.style.transition=`width ${total}ms linear`;
+  setTimeout(()=>{bar.style.width='100%';},50);
+  let idx=0;
+  function step(){
+    if(idx>=CLOSET_SCRIPT.length){el.classList.remove('active');bar.style.width='0%';bar.style.transition='';if(onFinish)onFinish();return;}
+    const s=CLOSET_SCRIPT[idx++]; ln.style.opacity=0;
+    setTimeout(()=>{spk.textContent=s.speaker;ln.textContent=s.line;act.textContent=s.action;ln.style.opacity=1;setTimeout(step,s.line?2800:1800);},300);
+  }
+  step();
+}
+
+// ─── GAME OVER ────────────────────────────────────────────────────────────────
+function triggerGameOver(name){
+  caught=true;gameRunning=false;inEncounter=false;
+  document.getElementById('go-msg').textContent=`${name} caught you. Better luck next time!`;
+  document.getElementById('game-over').style.display='flex';
+  document.exitPointerLock();
+}
+
+// ─── TEACHER AI ───────────────────────────────────────────────────────────────
+function updateTeachers(){
+  if(encounterCooldown>0) encounterCooldown--;
+  if(inEncounter) return;
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  const sneaking=keys['KeyC'];
+  teachers.forEach(t=>{
+    if(t.stunTimer>0){t.stunTimer--;return;}
+    // While player holds a book, teachers patrol normally — alert states frozen, no detection
+    if(holdingBook){
+      t.group.userData.coneMat.color.setHex(0xffff00); t.group.userData.coneMat.opacity=0.18;
+      const tp2=t.group.position, tgt2=t.patrol[t.patrolIdx];
+      const tdx2=tgt2.x-tp2.x, tdz2=tgt2.z-tp2.z, td2=Math.sqrt(tdx2*tdx2+tdz2*tdz2);
+      if(td2<0.3) t.patrolIdx=(t.patrolIdx+1)%t.patrol.length;
+      else{ moveEntity(tp2,(tdx2/td2)*t.type.patrolSpeed,(tdz2/td2)*t.type.patrolSpeed,0.5); t.group.rotation.y=Math.atan2(tdx2,tdz2); }
+      return;
+    }
+    const tp=t.group.position, dx=px-tp.x, dz=pz-tp.z, dist=Math.sqrt(dx*dx+dz*dz);
+    const range=sneaking?t.type.sneakRange:t.type.detectionRange;
+    if(dist<range&&!caught&&!escaped&&!inEncounter){
+      if(!t.alerted) showAlert(sneaking?`👁️ ${t.type.name} is nearby…`:`⚠️ ${t.type.name} spotted you!`);
+      t.alerted=true; t.alertTimer=140;
+    }
+    if(t.alerted){
+      t.alertTimer--; if(t.alertTimer<=0) t.alerted=false;
+      // Red cone while chasing
+      t.group.userData.coneMat.color.setHex(0xff2200);
+      t.group.userData.coneMat.opacity=0.32;
+      t.group.rotation.y=Math.atan2(dx,dz);
+      if(dist<=CATCH_RANGE){
+        // Already inside catch range — never move INTO the player
+        if(!caught&&!escaped&&!inEncounter&&encounterCooldown<=0){
+          triggerEncounter(t);
+        } else if(encounterCooldown>0){
+          // Cooldown active: back teacher off so they don't clip the player mesh
+          moveEntity(tp,-(dx/(dist||1))*t.type.chaseSpeed*2,-(dz/(dist||1))*t.type.chaseSpeed*2,0.5);
+        }
+      } else {
+        // Outside catch range — chase normally
+        moveEntity(tp,(dx/(dist||1))*t.type.chaseSpeed,(dz/(dist||1))*t.type.chaseSpeed,0.5);
+        // Re-check with updated position so encounter fires this frame, not next
+        const nx=px-tp.x, nz=pz-tp.z;
+        if(Math.sqrt(nx*nx+nz*nz)<CATCH_RANGE&&!caught&&!escaped&&!inEncounter&&encounterCooldown<=0)
+          triggerEncounter(t);
+      }
+      // Force-open closed doors after ~1.5 s of being blocked
+      let nearClosedDoor=null;
+      for(const d of gameDoors){
+        if(!d.open){ const ddx=tp.x-d.hx,ddz=tp.z-d.hz; if(Math.sqrt(ddx*ddx+ddz*ddz)<3.5){nearClosedDoor=d;break;} }
+      }
+      if(nearClosedDoor){ t.doorBlockTimer++; if(t.doorBlockTimer>90){openDoor(nearClosedDoor);t.doorBlockTimer=0;} }
+      else t.doorBlockTimer=0;
+    } else {
+      // Reset cone to yellow while patrolling
+      t.group.userData.coneMat.color.setHex(0xffff00);
+      t.group.userData.coneMat.opacity=0.18;
+      const tgt=t.patrol[t.patrolIdx], tdx=tgt.x-tp.x, tdz=tgt.z-tp.z, td=Math.sqrt(tdx*tdx+tdz*tdz);
+      if(td<0.3) t.patrolIdx=(t.patrolIdx+1)%t.patrol.length;
+      else { moveEntity(tp,(tdx/td)*t.type.patrolSpeed,(tdz/td)*t.type.patrolSpeed,0.5); t.group.rotation.y=Math.atan2(tdx,tdz); }
+    }
+  });
+}
+
+// ─── KEYS UPDATE ─────────────────────────────────────────────────────────────
+function updateKeys(){
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  keyMeshes.forEach(km=>{
+    if(km.userData.collected)return;
+    km.position.y=0.8+Math.sin(Date.now()*0.003+km.userData.index)*0.12; km.rotation.z+=0.03;
+    const dx=px-km.position.x, dz=pz-km.position.z;
+    const dist=Math.sqrt(dx*dx+dz*dz);
+    // Mark as discovered when player gets within 3 units (reveals on map)
+    if(!km.userData.discovered && dist<3.0) km.userData.discovered=true;
+    // Collect when within 1 unit
+    if(dist<1.0){
+      km.userData.collected=true; km.visible=false; keysCollected++;
+      updateHUD(); showAlert(`🔑 Key collected! (${keysCollected}/${totalKeys})`);
+      if(keysCollected>=totalKeys){
+        window._exitDoor.material=mats.exitDoor;
+        showAlert('✅ All keys! Head SOUTH through the exit gap!',3500);
+      }
+    }
+  });
+}
+
+function checkExit(){
+  if(keysCollected<totalKeys)return;
+  // Player walks through the physical gap in the south wall
+  if(Math.abs(playerGroup.position.x)<EXIT_X && playerGroup.position.z>EXIT_Z){
+    escaped=true; gameRunning=false;
+    const secs=Math.round((Date.now()-startTime-pausedDuration)/1000);
+    document.getElementById('win-msg').textContent=`You snuck out in ${secs} seconds!`;
+    setTimeout(()=>{ document.getElementById('win-screen').style.display='flex'; document.exitPointerLock(); },300);
+  }
+}
+
+function updateHUD(){
+  document.getElementById('key-count').textContent=keysCollected;
+  document.getElementById('key-total').textContent=totalKeys;
+}
+
+// ─── STAMINA BAR ─────────────────────────────────────────────────────────────
+function updateStaminaBar(){
+  const pct=stamina/STAMINA_MAX;
+  const fill=document.getElementById('stamina-fill');
+  fill.style.width=(pct*100)+'%';
+  fill.style.background=pct>0.5?'#f0c040':pct>0.2?'#e07020':'#e03020';
+  // dim label when full and not holding shift
+  const holdingShift=keys['ShiftLeft']||keys['ShiftRight'];
+  document.getElementById('stamina-label').style.opacity=pct>=1&&!holdingShift?'0.35':'1';
+}
+
+// ─── PLAYER UPDATE ────────────────────────────────────────────────────────────
+function updatePlayer(){
+  if(inEncounter||settingsOpen||mapOpen)return;
+  const sneaking  = keys['KeyC'];
+  const wantSprint= (keys['ShiftLeft']||keys['ShiftRight']);
+
+  const fwd=new THREE.Vector3( Math.sin(camYaw), 0,  Math.cos(camYaw));
+  const rgt=new THREE.Vector3( Math.cos(camYaw), 0, -Math.sin(camYaw));
+
+  let mx=0,mz=0;
+  if(keys['KeyW']||keys['ArrowUp'])    {mx+=fwd.x;mz+=fwd.z;}
+  if(keys['KeyS']||keys['ArrowDown'])  {mx-=fwd.x;mz-=fwd.z;}
+  if(keys['KeyA']||keys['ArrowLeft'])  {mx+=rgt.x;mz+=rgt.z;}
+  if(keys['KeyD']||keys['ArrowRight']) {mx-=rgt.x;mz-=rgt.z;}
+
+  const moving=(mx!==0||mz!==0);
+  // Locked out after hitting 0 until 30% (0.3 s) has recharged
+  if(sprintLocked && stamina>=STAMINA_MAX*0.3) sprintLocked=false;
+  // Can't sprint while holding a book
+  const sprinting=wantSprint&&moving&&stamina>0&&!sprintLocked&&!holdingBook;
+  isSprinting=sprinting;
+
+  // Stamina drain / regen
+  if(sprinting){
+    stamina=Math.max(0, stamina-animDt);
+    if(stamina===0) sprintLocked=true;
+  } else {
+    stamina=Math.min(STAMINA_MAX, stamina+STAMINA_REGEN*animDt);
+  }
+  updateStaminaBar();
+
+  // Book timer countdown — auto-drop at 0
+  if(holdingBook){
+    bookTimer=Math.max(0, bookTimer-animDt);
+    if(bookTimer===0) dropBook();
+  }
+  // Book cooldown countdowns
+  if(bookCooldown>0)       bookCooldown       = Math.max(0, bookCooldown-animDt);
+  if(bookActionCooldown>0) bookActionCooldown = Math.max(0, bookActionCooldown-animDt);
+  if(doorActionCooldown>0) doorActionCooldown = Math.max(0, doorActionCooldown-animDt);
+
+  let speed=sneaking||holdingBook?SNEAK_SPEED:PLAYER_SPEED;
+  if(sprinting) speed=SPRINT_SPEED;
+  if(playerRunBoost>0){speed=PLAYER_SPEED*1.6;playerRunBoost--;}
+
+  const len=Math.sqrt(mx*mx+mz*mz);
+  if(len>0){
+    mx=(mx/len)*speed; mz=(mz/len)*speed;
+    moveEntity(playerGroup.position,mx,mz,0.45);
+    // When backpedaling (S, no W) keep the character facing the camera's forward direction
+    // so the body doesn't flip 180° and fight with the camera.
+    const backpedalOnly=(keys['KeyS']||keys['ArrowDown'])&&!(keys['KeyW']||keys['ArrowUp']);
+    if(!backpedalOnly) playerGroup.rotation.y=Math.atan2(mx,mz);
+    body.position.y=0.6+Math.sin(Date.now()*0.015)*(sneaking?0.02:0.04);
+    phead.position.y=1.45+Math.sin(Date.now()*0.015)*(sneaking?0.02:0.04);
+    // Lazy camera follow — only activates when a wall is detected AHEAD and player is
+    // moving purely forward (no S, no strafing, no sneaking).
+    const forwardOnly=(keys['KeyW']||keys['ArrowUp'])&&!keys['KeyS']&&!keys['ArrowDown']&&!keys['KeyA']&&!keys['KeyD']&&!keys['ArrowLeft']&&!keys['ArrowRight']&&!sneaking;
+    if(forwardOnly){
+      const lookDist=2.0; // how far ahead to check for a wall
+      const aheadX=playerGroup.position.x+Math.sin(camYaw)*lookDist;
+      const aheadZ=playerGroup.position.z+Math.cos(camYaw)*lookDist;
+      if(collidesWithWalls(aheadX, aheadZ, 0.3)){
+        const moveAngle=Math.atan2(mx,mz);
+        let diff=moveAngle-camYaw;
+        while(diff> Math.PI) diff-=2*Math.PI;
+        while(diff<-Math.PI) diff+=2*Math.PI;
+        camYaw+=diff*0.04;
+      }
+    }
+  }
+
+  // Camera
+  if(firstPerson){
+    playerGroup.visible=false;
+    camera.position.set(playerGroup.position.x,1.5,playerGroup.position.z);
+    camera.lookAt(
+      playerGroup.position.x+Math.sin(camYaw)*Math.cos(camPitch)*10,
+      1.5+Math.sin(camPitch)*10,
+      playerGroup.position.z+Math.cos(camYaw)*Math.cos(camPitch)*10
+    );
+  } else {
+    playerGroup.visible=true;
+    const camOffX=-Math.sin(camYaw), camOffZ=-Math.cos(camYaw);
+    // Walk inward from ideal distance; default to 0 so a fully-blocked scan
+    // puts the camera at the player rather than through a wall
+    let targetDist=0;
+    for(let d=CAM_BACK; d>=0; d-=0.1){
+      if(!collidesWithWalls(playerGroup.position.x+camOffX*d, playerGroup.position.z+camOffZ*d, 0.22)){
+        targetDist=d; break;
+      }
+    }
+    // Snap in instantly (never clip), ease out slowly (no pop-back through walls)
+    if(targetDist < currentCamDist) currentCamDist=targetDist;
+    else currentCamDist += (targetDist-currentCamDist)*0.08;
+    // hDist is purely horizontal behind-distance; height uses CAM_DIST so pitch orbit stays tall
+    const hDist = currentCamDist;
+    const camY  = playerGroup.position.y + 1.0 + CAM_DIST * Math.sin(camPitch3);
+    camera.position.set(
+      playerGroup.position.x + camOffX * hDist,
+      camY,
+      playerGroup.position.z + camOffZ * hDist
+    );
+    camera.lookAt(playerGroup.position.x, playerGroup.position.y+0.8, playerGroup.position.z);
+  }
+}
+
+const statusBar=document.getElementById('status-bar');
+const crouchKeyEl=document.getElementById('crouch-key');
+const timerDisplay=document.getElementById('timer-display');
+function updateStatus(){
+  const sneaking =(keys['KeyC']);
+  const sprinting=isSprinting;
+  // Crouch indicator highlight
+  if(sneaking) crouchKeyEl.classList.add('active');
+  else         crouchKeyEl.classList.remove('active');
+  // Timer
+  const elapsed=Math.max(0, Date.now()-startTime-pausedDuration);
+  const totalSec=Math.floor(elapsed/1000);
+  const mins=Math.floor(totalSec/60);
+  const secs=(totalSec%60).toString().padStart(2,'0');
+  timerDisplay.textContent=`⏱ ${mins}:${secs}`;
+  if(settingsOpen)           statusBar.innerHTML='⚙️ <b>Settings open</b> — press Enter to close';
+  else if(mapOpen)           statusBar.innerHTML='🗺️ <b>Map open</b> — press M to close';
+  else if(holdingBook)       statusBar.innerHTML=`📖 <b>Reading pose</b> — teachers ignore you &nbsp;|&nbsp; ${Math.ceil(bookTimer)}s left &nbsp;|&nbsp; hold E to put down`;
+  else if(bookCooldown>0)    statusBar.innerHTML=`📖 Book cooldown — ${Math.ceil(bookCooldown)}s until next pickup`;
+  else if(playerRunBoost>0)  statusBar.innerHTML='🏃 <b>Running!</b> Nearby teachers are on alert!';
+  else if(sprinting)         statusBar.innerHTML='⚡ <b>Sprinting!</b> — teachers detect you easier';
+  else if(sneaking)          statusBar.innerHTML='🤫 <b>Sneaking</b> — reduced detection range';
+  else if(keysCollected>=totalKeys) statusBar.innerHTML='✅ All keys! Head <b>SOUTH</b> through the exit gap!';
+  else statusBar.innerHTML='Collect all keys — <b>C</b>=crouch &nbsp; <b>Shift</b>=sprint &nbsp; <b>E</b>=door &nbsp; <b>M</b>=map &nbsp; <b>Enter</b>=settings';
+}
+
+// ─── DOORS ────────────────────────────────────────────────────────────────────
+const gameDoors=[];
+let doorHoldFrames=0, nearDoor=null;
+const DOOR_HOLD_FRAMES=90;  // 1.5 s at 60 fps
+const DOOR_ARC_CIRC=157.1;  // 2π×25
+// Sliding pocket doors — slide along the wall into the room when opened.
+// closedZ = centre of doorway gap  |  openZ = fully past gap, hidden behind room wall
+// hz      = corridor-side edge (used for proximity detection)
+const DOOR_SLIDE_SPEED=12; // world-units per second (time-based via animDt)
+
+const DOOR_CONFIGS=[
+  {x:-3, meshX:-0.11, hz:-6.25, closedZ:-8.125, openZ:-13.0},  // Room A (NW)
+  {x: 3, meshX: 0.11, hz:-6.25, closedZ:-8.125, openZ:-13.0},  // Room B (NE)
+  {x:-3, meshX:-0.11, hz: 6.25, closedZ: 8.125, openZ: 13.0},  // Room C (SW)
+  {x: 3, meshX: 0.11, hz: 6.25, closedZ: 8.125, openZ: 13.0},  // Room D (SE)
+];
+
+function createDoors(){
+  DOOR_CONFIGS.forEach(cfg=>{
+    const mesh=new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 3.5, 3.8),
+      new THREE.MeshLambertMaterial({
+        color:0x8b5e2a,
+        polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-1
+      })
+    );
+    mesh.position.set(cfg.x+cfg.meshX, 1.75, cfg.closedZ);
+    mesh.castShadow=true;
+    scene.add(mesh);
+
+    const wallEntry={
+      minX:cfg.x-0.24, maxX:cfg.x+0.24,
+      minZ:cfg.closedZ-1.95, maxZ:cfg.closedZ+1.95
+    };
+    walls.push(wallEntry);
+
+    gameDoors.push({
+      hx:cfg.x, hz:cfg.hz,
+      mesh, wallEntry,
+      open:false, targetZ:cfg.closedZ, closedZ:cfg.closedZ, openZ:cfg.openZ
+    });
+  });
+}
+
+function updateDoors(){
+  gameDoors.forEach(d=>{
+    const diff=d.targetZ-d.mesh.position.z;
+    if(Math.abs(diff)>0.005)
+      d.mesh.position.z+=Math.sign(diff)*Math.min(Math.abs(diff), DOOR_SLIDE_SPEED*animDt);
+    else
+      d.mesh.position.z=d.targetZ;
+  });
+}
+
+function openDoor(door){
+  door.open=true;
+  door.targetZ=door.openZ;
+  const idx=walls.indexOf(door.wallEntry);
+  if(idx!==-1) walls.splice(idx,1);
+}
+function closeDoor(door){
+  door.open=false;
+  door.targetZ=door.closedZ;
+  if(!walls.includes(door.wallEntry)) walls.push(door.wallEntry);
+}
+
+let _prevKeyE=false; // track E-press edge so book pickup/drop fires once per press
+function checkDoorInteraction(){
+  if(inEncounter||settingsOpen||mapOpen) return;
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  const eJustPressed=keys['KeyE']&&!_prevKeyE;
+  _prevKeyE=keys['KeyE'];
+
+  // Find the CLOSEST door within range
+  nearDoor=null;
+  let nearDoorDist=Infinity;
+  for(const d of gameDoors){
+    const dx1=px-d.hx, dz1=pz-d.hz;
+    const dx2=px-d.mesh.position.x, dz2=pz-d.mesh.position.z;
+    const dist=Math.min(Math.sqrt(dx1*dx1+dz1*dz1),Math.sqrt(dx2*dx2+dz2*dz2));
+    if(dist<4.5&&dist<nearDoorDist){nearDoor=d;nearDoorDist=dist;}
+  }
+
+  const prompt=document.getElementById('door-prompt');
+  const arc=document.getElementById('door-arc');
+  const lbl=prompt.querySelector('.dp-label');
+
+  // ── Book drop (highest priority when holding) ──────────────────────────────
+  if(holdingBook){
+    if(bookActionCooldown>0){
+      // Grace period right after pickup — ignore E so a lingering hold doesn't instantly drop
+      prompt.style.display='none';
+      arc.setAttribute('stroke-dasharray',`0 ${DOOR_ARC_CIRC}`);
+      bookHoldFrames=0;
+      if(doorHoldFrames>0) doorHoldFrames=0;
+      return;
+    }
+    prompt.style.display='block';
+    lbl.textContent=`📖 Hold E — Put book back (${Math.ceil(bookTimer)}s)`;
+    if(keys['KeyE']){
+      bookHoldFrames++;
+      if(bookHoldFrames>=BOOK_HOLD_FRAMES){ dropBook(); bookHoldFrames=0; prompt.style.display='none'; }
+    } else {
+      bookHoldFrames=0;
+    }
+    arc.setAttribute('stroke-dasharray',`${(bookHoldFrames/BOOK_HOLD_FRAMES)*DOOR_ARC_CIRC} ${DOOR_ARC_CIRC}`);
+    if(doorHoldFrames>0){doorHoldFrames=0;}
+    return;
+  }
+
+  // ── Book pickup — only when near shelf and NOT near a door ─────────────────
+  if(!nearDoor && isNearShelf()){
+    prompt.style.display='block';
+    if(bookCooldown>0){
+      // On cooldown — show countdown, no interaction
+      lbl.textContent=`📖 Book on cooldown (${Math.ceil(bookCooldown)}s)`;
+      arc.setAttribute('stroke-dasharray',`0 ${DOOR_ARC_CIRC}`);
+      bookHoldFrames=0;
+    } else {
+      // Ready — hold E arc to pick up
+      lbl.textContent='Hold E — Pick up a book';
+      if(keys['KeyE']){
+        bookHoldFrames++;
+        if(bookHoldFrames>=BOOK_HOLD_FRAMES){ pickupBook(); bookHoldFrames=0; }
+      } else {
+        bookHoldFrames=0;
+      }
+      arc.setAttribute('stroke-dasharray',`${(bookHoldFrames/BOOK_HOLD_FRAMES)*DOOR_ARC_CIRC} ${DOOR_ARC_CIRC}`);
+    }
+    if(doorHoldFrames>0){doorHoldFrames=0;}
+    return;
+  }
+  // Reset book hold arc when leaving shelf
+  if(bookHoldFrames>0){ bookHoldFrames=0; }
+
+  // ── Door interaction (existing hold-E logic) ───────────────────────────────
+  if(!nearDoor){
+    prompt.style.display='none';
+    if(doorHoldFrames>0){doorHoldFrames=0;arc.setAttribute('stroke-dasharray',`0 ${DOOR_ARC_CIRC}`);}
+    return;
+  }
+  prompt.style.display='block';
+  lbl.textContent=nearDoor.open?'Hold E — Close door':'Hold E — Open door';
+  if(keys['KeyE'] && doorActionCooldown<=0){
+    doorHoldFrames++;
+    if(doorHoldFrames>=DOOR_HOLD_FRAMES){
+      nearDoor.open?closeDoor(nearDoor):openDoor(nearDoor);
+      doorHoldFrames=0; arc.setAttribute('stroke-dasharray',`0 ${DOOR_ARC_CIRC}`);
+      doorActionCooldown=0.35; prompt.style.display='none'; return;
+    }
+  } else {
+    if(doorHoldFrames>0){doorHoldFrames=0;arc.setAttribute('stroke-dasharray',`0 ${DOOR_ARC_CIRC}`);}
+  }
+  arc.setAttribute('stroke-dasharray',`${(doorHoldFrames/DOOR_HOLD_FRAMES)*DOOR_ARC_CIRC} ${DOOR_ARC_CIRC}`);
+}
+
+// ─── GAME STATE ───────────────────────────────────────────────────────────────
+let gameRunning=false,caught=false,escaped=false,startTime=0;
+let pausedDuration=0, _pauseStart=0; // track total time spent paused so timer stays accurate
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  gameRunning=true; startTime=Date.now();
+  renderer.domElement.requestPointerLock();
+  buildSchool(); spawnKeys(); spawnTeachers(); createDoors();
+  updateHUD(); animate();
+}
+function restartGame(){ location.reload(); }
+
+function onResize(){
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',onResize); onResize();
+
+let _lastFrame=performance.now();
+function animate(){
+  const _now=performance.now();
+  animDt=Math.min((_now-_lastFrame)/1000, 0.05); // cap at 50 ms to avoid spiral on tab-switch
+  _lastFrame=_now;
+  requestAnimationFrame(animate);
+  if(gameRunning){ updatePlayer();updateTeachers();updateKeys();checkExit();updateStatus();drawMinimap();checkDoorInteraction();updateDoors(); }
+  if(mapOpen) drawBigMap(); // redraw every frame so teacher dots move in real time
+  renderer.render(scene,camera);
+}
+</script>
+</body>
+</html>

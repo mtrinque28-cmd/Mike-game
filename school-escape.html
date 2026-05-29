@@ -22,6 +22,18 @@
     padding:8px 14px; color:#55aaff; font-size:15px; font-weight:bold;
     font-variant-numeric: tabular-nums; letter-spacing:1px; min-width:90px; text-align:center;
   }
+  #clock-display {
+    display:flex; align-items:center; gap:8px;
+    background:rgba(0,0,0,0.75); border:2px solid #cc8844; border-radius:8px;
+    padding:6px 12px; color:#ffcc88; font-size:15px; font-weight:bold;
+    font-variant-numeric: tabular-nums; letter-spacing:1px; text-align:center;
+    font-family:'Courier New', monospace;
+  }
+  #clock-display.late  { border-color:#ff6644; color:#ff8866; }
+  #clock-display.midnight { border-color:#ff2200; color:#ff5555; animation:clockPulse 1.5s ease-in-out infinite; }
+  @keyframes clockPulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+  #clock-icon { font-size:18px; display:inline-block; }
+  #clock-right { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
   #status-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); border:1px solid #555; border-radius:8px; padding:8px 20px; color:#ccc; font-size:13px; pointer-events:none; z-index:10; text-align:center; }
 
   /* ── STAMINA BAR ── */
@@ -265,7 +277,10 @@
   <div id="top-bar">
     <div id="keys-display">🔑 Keys: <span id="key-count">0</span> / <span id="key-total">5</span></div>
     <div id="alert-box">⚠️ Teacher spotted you!</div>
-    <div id="timer-display">⏱ 0:00</div>
+    <div id="clock-right">
+      <div id="clock-display"><span id="clock-icon">🕖</span><span id="clock-time">7:00 PM</span></div>
+      <div id="timer-display">⏱ 0:00</div>
+    </div>
   </div>
 </div>
 <div id="status-bar">Collect all keys then reach the EXIT</div>
@@ -607,7 +622,7 @@ function toggleAudio() {
 // ─── TEACHER TYPES ────────────────────────────────────────────────────────────
 const TEACHER_TYPES = [
   { id:'davis',    name:'Mr. Davis',    gender:'male',   bodyColor:0x334488, headColor:0xffcc88,
-    patrolSpeed:0.030, chaseSpeed:0.068, detectionRange:8.0, sneakRange:4.5,
+    patrolSpeed:0.030, chaseSpeed:0.068, detectionRange:6.0, sneakRange:3.4,
     talkChance:0.78, flirtChance:0.15,
     quote:'Hey! Where do you think you\'re going at this hour?',
     talkWin:'Mr. Davis sighs. "Fine, just get to the bus. Don\'t let me catch you again."',
@@ -615,7 +630,7 @@ const TEACHER_TYPES = [
     flirtWin:'Mr. Davis looks confused. "Uh… thanks? Just… go home, kid."',
     flirtFail:'Mr. Davis frowns. "That\'s very inappropriate. Principal\'s office. Now."' },
   { id:'thompson', name:'Mr. Thompson', gender:'male',   bodyColor:0x223366, headColor:0xffcc88,
-    patrolSpeed:0.033, chaseSpeed:0.072, detectionRange:7.5, sneakRange:4.0,
+    patrolSpeed:0.033, chaseSpeed:0.072, detectionRange:5.6, sneakRange:3.0,
     talkChance:0.68, flirtChance:0.12,
     quote:'Stop right there! This building is closed!',
     talkWin:'Mr. Thompson scratches his head. "Alright — forgotten item, I get it. Out you go."',
@@ -623,7 +638,7 @@ const TEACHER_TYPES = [
     flirtWin:'Mr. Thompson turns red. "What — no — just… go home!"',
     flirtFail:'Mr. Thompson blows his whistle. "UNACCEPTABLE. Office. Immediately."' },
   { id:'harris',   name:'Ms. Harris',   gender:'female', personality:'strict', bodyColor:0x882244, headColor:0xffcc88,
-    patrolSpeed:0.042, chaseSpeed:0.058, detectionRange:9.5, sneakRange:5.5,
+    patrolSpeed:0.042, chaseSpeed:0.058, detectionRange:7.0, sneakRange:4.2,
     talkChance:0.22, flirtChance:0.08,
     quote:'I have eyes everywhere. You cannot escape me. Explain yourself.',
     talkWin:'Ms. Harris pauses. "…Very well. But I\'m calling your parents in the morning."',
@@ -631,7 +646,7 @@ const TEACHER_TYPES = [
     flirtWin:'Ms. Harris raises an eyebrow. "How… bizarre. Get out of my school."',
     flirtFail:'Ms. Harris\'s eye twitches. "Detention. Three weeks. MOVE."' },
   { id:'rivera',   name:'Ms. Rivera',   gender:'female', personality:'friendly', bodyColor:0xaa3399, headColor:0xffcc88,
-    patrolSpeed:0.038, chaseSpeed:0.048, detectionRange:7.0, sneakRange:3.8,
+    patrolSpeed:0.038, chaseSpeed:0.048, detectionRange:5.2, sneakRange:2.8,
     talkChance:0.62, flirtChance:0.95, closetScene:true,
     quote:'Oh! I didn\'t expect to see you here after hours…',
     talkWin:'Ms. Rivera smiles. "Okay okay, I believe you. Head straight out!"',
@@ -639,7 +654,7 @@ const TEACHER_TYPES = [
     flirtWin:'closet',
     flirtFail:'Ms. Rivera looks startled. "That\'s… very bold. I\'m going to have to report you."' },
   { id:'chen',     name:'Ms. Chen',     gender:'female', personality:'slow',   bodyColor:0x227766, headColor:0xffcc88,
-    patrolSpeed:0.020, chaseSpeed:0.028, detectionRange:7.0, sneakRange:3.5,
+    patrolSpeed:0.020, chaseSpeed:0.028, detectionRange:5.2, sneakRange:2.6,
     talkChance:0.55, flirtChance:0.38,
     quote:'Wait… you there! Come back here… please…',
     talkWin:'Ms. Chen catches her breath. "Okay… I\'ll let it go… just go…"',
@@ -647,7 +662,7 @@ const TEACHER_TYPES = [
     flirtWin:'Ms. Chen laughs. "You\'re too much. Go on, scram before I change my mind."',
     flirtFail:'Ms. Chen frowns. "That was uncalled for. To the office."' },
   { id:'brooks',   name:'Mr. Brooks',   gender:'male',   personality:'strict', bodyColor:0x3d2b1f, headColor:0xffcc88,
-    patrolSpeed:0.025, chaseSpeed:0.055, detectionRange:10.0, sneakRange:6.0,
+    patrolSpeed:0.025, chaseSpeed:0.055, detectionRange:7.5, sneakRange:4.5,
     talkChance:0.30, flirtChance:0.05,
     quote:'This is a library. And you are VERY out of place.',
     talkWin:'Mr. Brooks adjusts his glasses. "…A forgotten textbook. Fine. Leave. Quietly."',
@@ -655,7 +670,7 @@ const TEACHER_TYPES = [
     flirtWin:'Mr. Brooks stares blankly. "I… what. Please just leave the premises."',
     flirtFail:'Mr. Brooks points at the door. "Out. Right now. I\'m calling security."' },
   { id:'jenkins',  name:'Mr. Jenkins',  gender:'male',   personality:'janitor', bodyColor:0x445544, headColor:0xffcc88,
-    patrolSpeed:0.020, chaseSpeed:0.040, detectionRange:6.5, sneakRange:3.0,
+    patrolSpeed:0.020, chaseSpeed:0.040, detectionRange:4.8, sneakRange:2.4,
     talkChance:0.85, flirtChance:0.20,
     quote:'Aw, hell, kid. You ain\'t supposed to be here…',
     talkWin:'Mr. Jenkins leans on his mop. "Bus stop\'s out south. Make it quick, I never saw ya."',
@@ -694,6 +709,8 @@ const lockers = [];        // {mesh, x, z, facing, occupied}
 let isHiding = false;
 let hidingLocker = null;
 let _prevKeyF = false;
+let lockerHoldFrames = 0;
+const LOCKER_HOLD_FRAMES = 45;  // 0.75 s at 60 fps to climb in
 
 // ─── PAPER AIRPLANE DISTRACTIONS ──────────────────────────────────────────────
 const paperPlanes = [];
@@ -708,7 +725,12 @@ let notesRead = 0;
 let activeNote = null;
 
 // ─── DAY/NIGHT ATMOSPHERE ─────────────────────────────────────────────────────
-const dayNight = { t: 0, duration: 240 }; // seconds for full sunset->night
+// Clock runs from 7:00 PM (t=0) to 12:00 AM midnight (t=1) over CLOCK_DURATION s.
+// Each game hour = CLOCK_DURATION/5 real seconds.
+const CLOCK_DURATION = 360;             // 6 real minutes = full 5-hour shift
+const dayNight = { t: 0, duration: CLOCK_DURATION };
+let lastClockHour = 7;                  // tracks hour ticks for difficulty bumps
+let difficultyTier = 0;                 // 0..5 — scales teacher speed/FOV
 let ambientLight = null;
 
 // ─── DETECTION / STATS ────────────────────────────────────────────────────────
@@ -1293,11 +1315,13 @@ function makeTeacherMesh(type) {
     const mopHead = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.3), new THREE.MeshLambertMaterial({color:0xeeeeee}));
     mopHead.position.set(0.7, 0.15, 0.4); g.add(mopHead);
   }
-  // Vision cone — wider/longer to match new LOS-aware detection
-  const coneMat=new THREE.MeshBasicMaterial({color:0xffff00,transparent:true,opacity:0.16});
-  const coneRange = type.detectionRange * 0.75;
-  const cone=new THREE.Mesh(new THREE.ConeGeometry(coneRange*0.45, coneRange, 12),coneMat);
-  cone.position.set(0, 1.0, coneRange*0.5 + 0.2);
+  // Vision cone — small directional indicator only (not the actual detection volume).
+  // Detection itself uses LOS + range checks in code; this is just a visual hint.
+  const coneMat=new THREE.MeshBasicMaterial({color:0xffff00,transparent:true,opacity:0.18});
+  const coneLength = Math.min(2.4, type.detectionRange * 0.32);
+  const coneRadius = coneLength * 0.22;          // narrow base
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(coneRadius, coneLength, 10),coneMat);
+  cone.position.set(0, 1.05, coneLength*0.5 + 0.18);
   cone.rotation.x = -Math.PI/2; g.add(cone);
   g.userData.coneMat = coneMat;
   g.userData.leftArm = lArm; g.userData.rightArm = rArm;
@@ -1362,7 +1386,8 @@ function teacherCanSeePlayer(t) {
   const dx = px - tx, dz = pz - tz;
   const dist = Math.sqrt(dx*dx + dz*dz);
   if (dist < 1.2) return clearLineOfSight(tx, tz, px, pz); // proximity bypass
-  const range = (keys['KeyC'] ? t.type.sneakRange : t.type.detectionRange) * (holdingBook?0.4:1);
+  const range = (keys['KeyC'] ? t.type.sneakRange : t.type.detectionRange)
+              * (holdingBook?0.4:1) * teacherRangeMul();
   if (dist > range) return false;
   // FOV cone
   const teacherFacing = t.group.rotation.y;
@@ -1370,7 +1395,9 @@ function teacherCanSeePlayer(t) {
   let diff = angleToPlayer - teacherFacing;
   while (diff > Math.PI)  diff -= 2*Math.PI;
   while (diff < -Math.PI) diff += 2*Math.PI;
-  const fov = t.alerted ? (Math.PI*0.95) : (Math.PI*0.55); // ~100° normal, ~170° alerted
+  // Tighter base FOV (was 100°/170° → now 75°/130°), grows slightly per hour
+  const baseFov = t.alerted ? (Math.PI*0.72) : (Math.PI*0.42);
+  const fov = Math.min(Math.PI*0.95, baseFov * teacherFovMul());
   if (Math.abs(diff) > fov/2) return false;
   return clearLineOfSight(tx, tz, px, pz);
 }
@@ -1544,6 +1571,27 @@ function updateNotes() {
 function updateDayNight(dt) {
   dayNight.t = Math.min(1, dayNight.t + dt/dayNight.duration);
   const t = dayNight.t;
+  // Advance clock — 7 PM → 12 AM (5 hours mapped to t 0..1)
+  const totalHours = 7 + t*5;             // 7..12
+  const hourInt = Math.floor(totalHours);
+  const minuteInt = Math.floor((totalHours - hourInt) * 60);
+  // Format display: 12 PM/AM logic
+  const displayHour = hourInt >= 12 ? (hourInt === 12 ? 12 : hourInt - 12) : hourInt;
+  const ampm = hourInt >= 12 ? 'AM' : 'PM';   // 7-11 PM, then 12 AM
+  document.getElementById('clock-time').textContent = `${displayHour}:${minuteInt.toString().padStart(2,'0')} ${ampm}`;
+  // Clock icon
+  const clockIcons = ['🕖','🕗','🕘','🕙','🕚','🕛'];
+  document.getElementById('clock-icon').textContent = clockIcons[Math.min(5, hourInt-7)];
+  // Visual urgency
+  const clockEl = document.getElementById('clock-display');
+  clockEl.classList.toggle('late',     hourInt >= 9 && hourInt < 11);
+  clockEl.classList.toggle('midnight', hourInt >= 11);
+  // Difficulty bumps every hour
+  if (hourInt > lastClockHour) {
+    lastClockHour = hourInt;
+    difficultyTier = hourInt - 7;
+    onHourPass(hourInt);
+  }
   // Sunset -> dusk -> night color interpolation
   const c1 = {r:0xff/255, g:0x95/255, b:0x58/255}; // sunset orange
   const c2 = {r:0x55/255, g:0x35/255, b:0x6a/255}; // dusk magenta
@@ -1569,6 +1617,24 @@ function updateDayNight(dt) {
   ambientLight.intensity = 0.55*(1-t*0.6);
   moon.intensity = Math.max(0, t-0.4) * 0.45;
 }
+
+// ─── HOURLY DIFFICULTY ESCALATION ─────────────────────────────────────────────
+// Each in-game hour raises difficultyTier (0..5). Teachers gain speed + range
+// per tier. At midnight (tier 5) extra flicker storms kick in.
+function onHourPass(hour) {
+  if (hour === 8)  { showTutorial('🕗 8:00 PM — The teachers are stirring. Watch yourself.', 4500); audio.alertSting(); }
+  if (hour === 9)  { showTutorial('🕘 9:00 PM — Lockup time. Teachers patrol faster now.', 4500); audio.alertSting(); }
+  if (hour === 10) { showTutorial('🕙 10:00 PM — They\'re actively hunting. Stay low.', 5000); audio.alertSting(); }
+  if (hour === 11) { showTutorial('🕚 11:00 PM — Final hour. Lights are dying. GET OUT.', 5000); audio.alertSting(); }
+  if (hour >= 12 && !escaped && !caught) {
+    showTutorial('🕛 MIDNIGHT — School locks down. Teachers are swarming!', 6000);
+    teachers.forEach(t=>{ t.alerted=true; t.alertTimer=99999; });
+    flickerLights.forEach(fl=>{ fl.nextFlick=0; });
+  }
+}
+function teacherSpeedMul() { return 1 + difficultyTier * 0.08; } // up to +40%
+function teacherRangeMul() { return 1 + difficultyTier * 0.05; } // up to +25%
+function teacherFovMul()   { return 1 + difficultyTier * 0.06; } // up to +30%
 
 // ─── FLICKERING LIGHTS ───────────────────────────────────────────────────────
 function updateFlickerLights(dt) {
@@ -2120,7 +2186,8 @@ function updateTeachers(){
           moveEntity(tp, -(dx/(dist||1))*t.type.chaseSpeed*2, -(dz/(dist||1))*t.type.chaseSpeed*2, 0.5);
         }
       } else if (dist > 0.4) {
-        moveEntity(tp, (dx/dist)*t.type.chaseSpeed, (dz/dist)*t.type.chaseSpeed, 0.5);
+        const cs = t.type.chaseSpeed * teacherSpeedMul();
+        moveEntity(tp, (dx/dist)*cs, (dz/dist)*cs, 0.5);
         const nrx = px - tp.x, nrz = pz - tp.z;
         if (Math.sqrt(nrx*nrx + nrz*nrz) < CATCH_RANGE && canSee &&
             !caught && !escaped && !inEncounter && encounterCooldown<=0) triggerEncounter(t);
@@ -2144,7 +2211,8 @@ function updateTeachers(){
       const dx = t.investigateX - tp.x, dz = t.investigateZ - tp.z;
       const dist = Math.sqrt(dx*dx + dz*dz);
       if (dist > 0.6) {
-        moveEntity(tp, (dx/dist)*t.type.patrolSpeed*1.25, (dz/dist)*t.type.patrolSpeed*1.25, 0.5);
+        const ps = t.type.patrolSpeed * 1.25 * teacherSpeedMul();
+        moveEntity(tp, (dx/dist)*ps, (dz/dist)*ps, 0.5);
         t.group.rotation.y = Math.atan2(dx, dz);
         animateTeacherLimbs(t, true);
       } else {
@@ -2170,7 +2238,8 @@ function patrolMove(t) {
     t.patrolIdx = (t.patrolIdx+1) % t.patrol.length;
     animateTeacherLimbs(t, false);
   } else {
-    moveEntity(tp, (dx/d)*t.type.patrolSpeed, (dz/d)*t.type.patrolSpeed, 0.5);
+    const ps = t.type.patrolSpeed * teacherSpeedMul();
+    moveEntity(tp, (dx/d)*ps, (dz/d)*ps, 0.5);
     t.group.rotation.y = Math.atan2(dx, dz);
     animateTeacherLimbs(t, true);
   }
@@ -2248,21 +2317,21 @@ function updateStaminaBar(){
 function updatePlayer(){
   if(inEncounter||settingsOpen||mapOpen||activeNote)return;
 
-  // If hiding, player can't move — but still update camera so they can look
+  // If hiding, player can't move. Always render from inside the locker (peephole
+  // view) regardless of 1st/3rd person setting — avoids clipping with the locker
+  // mesh and gives a consistent "hiding inside" feel.
   if (isHiding) {
-    // Camera placed slightly behind locker peep view
     const l = hidingLocker;
-    if (firstPerson) {
-      camera.position.set(l.x, 1.5, l.z);
-      camera.lookAt(
-        l.x + Math.sin(camYaw)*10,
-        1.5 + Math.sin(camPitch)*10,
-        l.z + Math.cos(camYaw)*10
-      );
-    } else {
-      camera.position.set(l.x - Math.sin(camYaw)*1.0, 1.5, l.z - Math.cos(camYaw)*1.0);
-      camera.lookAt(l.x, 1.4, l.z);
-    }
+    playerGroup.visible = false;
+    camera.position.set(l.x, 1.35, l.z);
+    // In first person we let mouse look freely; in 3rd person we still respect
+    // camYaw but keep the camera locked inside the locker.
+    const pitch = firstPerson ? camPitch : 0;
+    camera.lookAt(
+      l.x + Math.sin(camYaw)*10,
+      1.35 + Math.sin(pitch)*10,
+      l.z + Math.cos(camYaw)*10
+    );
     return;
   }
 
@@ -2327,21 +2396,7 @@ function updatePlayer(){
     } else if (playerRunBoost>0) {
       emitSoundPulse(playerGroup.position.x, playerGroup.position.z, 12, 'run');
     }
-    // Lazy camera follow — only activates when a wall is detected AHEAD and player is
-    // moving purely forward (no S, no strafing, no sneaking).
-    const forwardOnly=(keys['KeyW']||keys['ArrowUp'])&&!keys['KeyS']&&!keys['ArrowDown']&&!keys['KeyA']&&!keys['KeyD']&&!keys['ArrowLeft']&&!keys['ArrowRight']&&!sneaking;
-    if(forwardOnly){
-      const lookDist=2.0; // how far ahead to check for a wall
-      const aheadX=playerGroup.position.x+Math.sin(camYaw)*lookDist;
-      const aheadZ=playerGroup.position.z+Math.cos(camYaw)*lookDist;
-      if(collidesWithWalls(aheadX, aheadZ, 0.3)){
-        const moveAngle=Math.atan2(mx,mz);
-        let diff=moveAngle-camYaw;
-        while(diff> Math.PI) diff-=2*Math.PI;
-        while(diff<-Math.PI) diff+=2*Math.PI;
-        camYaw+=diff*0.04;
-      }
-    }
+    // Camera stays where the mouse points — no auto-rotation
   }
 
   // Limb swing — speed factor scales with movement style
@@ -2351,10 +2406,11 @@ function updatePlayer(){
   // Camera
   if(firstPerson){
     playerGroup.visible=false;
-    camera.position.set(playerGroup.position.x,1.5,playerGroup.position.z);
+    const camY = sneaking ? 0.95 : 1.55;
+    camera.position.set(playerGroup.position.x, camY, playerGroup.position.z);
     camera.lookAt(
       playerGroup.position.x+Math.sin(camYaw)*Math.cos(camPitch)*10,
-      1.5+Math.sin(camPitch)*10,
+      camY+Math.sin(camPitch)*10,
       playerGroup.position.z+Math.cos(camYaw)*Math.cos(camPitch)*10
     );
   } else {
@@ -2501,6 +2557,7 @@ function checkDoorInteraction(){
     actionPrompt.style.display='block';
     apKey.textContent='F'; apText.textContent='Step out of locker';
     if (fJustPressed) exitLocker();
+    lockerHoldFrames = 0;
     return;
   }
 
@@ -2509,16 +2566,30 @@ function checkDoorInteraction(){
   if (note && !isNearShelf()) {
     actionPrompt.style.display='block';
     apKey.textContent='F'; apText.textContent='Read note';
-    if (fJustPressed) { openNote(note); return; }
+    if (fJustPressed) { openNote(note); lockerHoldFrames = 0; return; }
+    lockerHoldFrames = 0;
   } else {
-    // Check for locker nearby
+    // Check for locker nearby — requires HOLDING F to climb in
     const locker = nearestLocker();
     if (locker) {
       actionPrompt.style.display='block';
-      apKey.textContent='F'; apText.textContent='Hide in locker';
-      if (fJustPressed) { enterLocker(locker); return; }
+      const pct = Math.round((lockerHoldFrames/LOCKER_HOLD_FRAMES)*100);
+      apKey.textContent='F';
+      apText.textContent = lockerHoldFrames>0
+        ? `Climbing into locker… ${pct}%`
+        : 'Hold F — Hide in locker';
+      if (keys['KeyF']) {
+        lockerHoldFrames++;
+        if (lockerHoldFrames >= LOCKER_HOLD_FRAMES) {
+          enterLocker(locker);
+          lockerHoldFrames = 0;
+        }
+      } else {
+        lockerHoldFrames = 0;
+      }
     } else {
       actionPrompt.style.display='none';
+      lockerHoldFrames = 0;
     }
   }
 

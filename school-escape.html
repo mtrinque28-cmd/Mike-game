@@ -136,6 +136,124 @@
     color:#888; font-size:13px; letter-spacing:2px; text-transform:uppercase;
     margin-top:8px; opacity:1;
   }
+
+  /* ── DETECTION METER ── */
+  #detection-bar {
+    position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    width:240px; pointer-events:none; z-index:10; text-align:center;
+  }
+  #detection-label { color:#bbb; font-size:11px; letter-spacing:2px; margin-bottom:3px; text-transform:uppercase; }
+  #detection-track {
+    position:relative; width:240px; height:10px; background:rgba(0,0,0,0.65);
+    border:1px solid #555; border-radius:5px; overflow:hidden;
+  }
+  #detection-fill { height:100%; width:0%; border-radius:4px; transition:background 0.2s, width 0.15s; background:#44aa44; }
+  #detection-icon { display:inline-block; font-size:13px; margin-right:5px; vertical-align:middle; }
+
+  /* ── INVENTORY HUD (papers, notes) ── */
+  #inventory-hud {
+    position:fixed; top:120px; left:24px; pointer-events:none; z-index:10;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .inv-item {
+    background:rgba(0,0,0,0.65); border:1px solid #666; border-radius:6px;
+    padding:5px 12px; color:#ddd; font-size:13px; font-weight:bold;
+    font-variant-numeric:tabular-nums;
+  }
+  .inv-item.papers { border-color:#88ccee; color:#88ccee; }
+  .inv-item.notes  { border-color:#ddcc88; color:#ddcc88; }
+
+  /* ── HIDE / NOTE PROMPTS ── */
+  #action-prompt {
+    position:fixed; bottom:180px; left:50%; transform:translateX(-50%);
+    pointer-events:none; z-index:15; display:none; text-align:center;
+    background:rgba(0,0,0,0.78); border:1px solid #aacc88; border-radius:8px;
+    padding:8px 14px; color:#aacc88; font-size:14px; letter-spacing:1px;
+  }
+  #action-prompt .ap-key {
+    display:inline-block; min-width:22px; padding:2px 7px; background:#222;
+    border:1px solid #aacc88; border-radius:4px; margin-right:6px; font-family:monospace;
+  }
+
+  /* ── HIDING OVERLAY ── */
+  #hiding-overlay {
+    position:fixed; inset:0; background:transparent; pointer-events:none; z-index:12;
+    display:none;
+  }
+  #hiding-overlay.active { display:block; }
+  #hiding-overlay::before {
+    content:''; position:absolute; inset:0;
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.4) 45%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.92) 100%),
+      radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 70%);
+  }
+  #hiding-overlay::after {
+    content:'🚪 HIDING IN LOCKER — Press F to peek out';
+    position:absolute; bottom:30px; left:0; right:0;
+    text-align:center; color:#88ccaa; font-size:14px; letter-spacing:2px; font-weight:bold;
+  }
+
+  /* ── NOTE READER ── */
+  #note-reader {
+    position:fixed; inset:0; background:rgba(0,0,0,0.86);
+    display:none; align-items:center; justify-content:center; z-index:30;
+  }
+  #note-reader.active { display:flex; }
+  #note-paper {
+    background:linear-gradient(180deg,#fff8dc,#f0e4b8);
+    color:#332b1c; padding:32px 40px; border-radius:6px;
+    max-width:520px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.7);
+    transform:rotate(-1deg); font-family:'Georgia',serif; position:relative;
+  }
+  #note-paper::before {
+    content:''; position:absolute; top:8px; left:8px; right:8px; bottom:8px;
+    border:1px dashed #998866; pointer-events:none;
+  }
+  #note-title { font-size:22px; color:#553311; margin-bottom:14px; border-bottom:1px solid #aa8855; padding-bottom:8px; }
+  #note-body  { font-size:15px; line-height:1.7; color:#3a2a1a; white-space:pre-wrap; }
+  #note-hint  { margin-top:18px; text-align:center; color:#776655; font-size:12px; font-style:italic; }
+
+  /* ── AUDIO TOGGLE ── */
+  #audio-toggle {
+    position:fixed; top:60px; right:24px; z-index:11;
+    background:rgba(0,0,0,0.65); border:1px solid #666; border-radius:6px;
+    padding:6px 10px; color:#ddd; font-size:14px; cursor:pointer; user-select:none;
+  }
+  #audio-toggle:hover { background:rgba(40,40,60,0.8); }
+
+  /* ── DEATH FLASH ── */
+  #flash-overlay {
+    position:fixed; inset:0; background:rgba(255,0,0,0); pointer-events:none;
+    z-index:18; transition:background 0.15s;
+  }
+  #flash-overlay.flash { background:rgba(255,40,40,0.35); }
+
+  /* ── VIGNETTE WHEN ALERTED ── */
+  #vignette {
+    position:fixed; inset:0; pointer-events:none; z-index:9;
+    box-shadow:inset 0 0 0 rgba(255,0,0,0);
+    transition:box-shadow 0.4s;
+  }
+  #vignette.alerted {
+    box-shadow:inset 0 0 200px rgba(255,40,40,0.55);
+  }
+
+  /* ── KEY HINT POPUPS ── */
+  #tutorial {
+    position:fixed; bottom:240px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.85); border:1px solid #f0c040; border-radius:8px;
+    padding:10px 18px; color:#f0c040; font-size:13px; z-index:16;
+    display:none; max-width:460px; text-align:center; line-height:1.5;
+  }
+  #tutorial.active { display:block; }
+
+  /* ── WIN SCREEN SCORE ── */
+  #score-rows {
+    background:rgba(0,0,0,0.4); border-radius:8px; padding:14px 20px; margin:14px 0;
+    text-align:left; min-width:280px;
+  }
+  .score-row { display:flex; justify-content:space-between; font-size:14px; color:#ddd; padding:4px 0; }
+  .score-row.total { border-top:1px solid #66aa66; margin-top:8px; padding-top:10px; color:#88ff88; font-weight:bold; font-size:16px; }
 </style>
 </head>
 <body>
@@ -157,6 +275,43 @@
   <div id="stamina-track"><div id="stamina-fill"></div><div id="stamina-notch"></div></div>
 </div>
 <canvas id="minimap"></canvas>
+
+<!-- DETECTION METER -->
+<div id="detection-bar">
+  <div id="detection-label"><span id="detection-icon">👁️</span><span id="detection-text">VISIBILITY</span></div>
+  <div id="detection-track"><div id="detection-fill"></div></div>
+</div>
+
+<!-- INVENTORY -->
+<div id="inventory-hud">
+  <div class="inv-item papers">✈️ Paper Airplanes: <span id="paper-count">3</span></div>
+  <div class="inv-item notes">📜 Notes Found: <span id="note-count">0</span> / <span id="note-total">5</span></div>
+</div>
+
+<!-- ACTION PROMPT -->
+<div id="action-prompt"><span class="ap-key" id="ap-key">F</span><span id="ap-text">Hide in locker</span></div>
+
+<!-- HIDING OVERLAY -->
+<div id="hiding-overlay"></div>
+
+<!-- NOTE READER -->
+<div id="note-reader">
+  <div id="note-paper">
+    <div id="note-title">Note Title</div>
+    <div id="note-body">Note body…</div>
+    <div id="note-hint">Press F or click anywhere to close</div>
+  </div>
+</div>
+
+<!-- AUDIO TOGGLE -->
+<div id="audio-toggle" onclick="toggleAudio()">🔊 Audio</div>
+
+<!-- FLASH / VIGNETTE -->
+<div id="flash-overlay"></div>
+<div id="vignette"></div>
+
+<!-- TUTORIAL HINT -->
+<div id="tutorial"></div>
 
 <!-- MAP OVERLAY -->
 <div id="map-overlay">
@@ -233,19 +388,24 @@
 
 <!-- START SCREEN -->
 <div id="overlay">
-  <h1>🏫 School Escape</h1>
-  <p>Trapped after hours. Collect 3 keys, then sneak to the EXIT without getting busted by hall monitors!</p>
+  <h1>🏫 School Escape: After Dark</h1>
+  <p>Trapped after hours as the sun sets. Find 5 keys hidden across the school, then sneak to the EXIT before the night janitor locks up. Watch your shadow — teachers can <b>see</b>, and they can <b>hear</b> you.</p>
   <div class="controls">
-    <span>WASD / Arrows</span> — Move &nbsp;|&nbsp; <span>Mouse</span> — Look / Camera<br>
-    <span>Shift</span> — Sprint (1 s, 8 s recharge) &nbsp;|&nbsp; <span>C</span> — Crouch / Sneak<br>
-    <span>E</span> (hold) — Open / Close door &nbsp;|&nbsp; <span>M</span> — Map &nbsp;|&nbsp; <span>Enter</span> — Pause / Settings<br>
+    <span>WASD / Arrows</span> — Move &nbsp;|&nbsp; <span>Mouse</span> — Look<br>
+    <span>Shift</span> — Sprint (loud!) &nbsp;|&nbsp; <span>C</span> — Crouch / Sneak (silent)<br>
+    <span>E</span> (hold) — Open door / Pick up book / Read note<br>
+    <span>F</span> — Hide in locker / Read note &nbsp;|&nbsp; <span>G</span> — Throw paper airplane (distraction)<br>
+    <span>M</span> — Map &nbsp;|&nbsp; <span>Enter</span> — Pause / Settings &nbsp;|&nbsp; <span>Q</span> — Mute audio<br>
     When caught: <span>Run · Talk · Flirt · Shove</span>
   </div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#4477cc"></div> Male teacher</div>
     <div class="legend-item"><div class="legend-dot" style="background:#cc4488"></div> Female teacher</div>
     <div class="legend-item"><div class="legend-dot" style="background:#c060c0"></div> Ms. Rivera</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#88ff88"></div> Mr. Jenkins (Janitor)</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ffd700"></div> Key</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ddcc88"></div> Note</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#aaccdd"></div> Locker</div>
     <div class="legend-item"><div class="legend-dot" style="background:#44ff44"></div> Exit</div>
   </div>
   <button id="start-btn" onclick="startGame()">Start Game</button>
@@ -259,11 +419,188 @@
 <div id="win-screen">
   <h1>YOU ESCAPED!</h1>
   <p id="win-msg">You snuck out successfully!</p>
+  <div id="score-rows">
+    <div class="score-row"><span>⏱ Escape Time</span><span id="sc-time">0:00</span></div>
+    <div class="score-row"><span>🔑 Keys Collected</span><span id="sc-keys">5 / 5</span></div>
+    <div class="score-row"><span>📜 Notes Found</span><span id="sc-notes">0 / 5</span></div>
+    <div class="score-row"><span>👁️ Times Spotted</span><span id="sc-spotted">0</span></div>
+    <div class="score-row"><span>🤫 Stealth Bonus</span><span id="sc-stealth">+0</span></div>
+    <div class="score-row total"><span>TOTAL SCORE</span><span id="sc-total">0</span></div>
+  </div>
   <button class="restart-btn" onclick="restartGame()">Play Again</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
+// ─── PROCEDURAL AUDIO SYSTEM ──────────────────────────────────────────────────
+// All sounds are synthesized with WebAudio — no external files required.
+class GameAudio {
+  constructor() {
+    this.ctx = null;
+    this.master = null;
+    this.muted = false;
+    this.heartbeatGain = null;
+    this.heartbeatTimer = null;
+    this.heartbeatBPM = 60;
+    this.ambient = null;
+    this.lastFootstep = 0;
+    this.chaseGain = null;
+    this.chaseOsc = null;
+  }
+  init() {
+    if (this.ctx) return;
+    try {
+      this.ctx = new (window.AudioContext||window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = this.muted ? 0 : 0.55;
+      this.master.connect(this.ctx.destination);
+      this._startAmbient();
+      this._startHeartbeat();
+      this._startChaseLayer();
+    } catch (e) { console.warn('Audio unavailable', e); }
+  }
+  setMute(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.linearRampToValueAtTime(m?0:0.55, this.ctx.currentTime+0.1);
+  }
+  _noise(dur, freq, q, vol, type='bandpass') {
+    if (!this.ctx || this.muted) return;
+    const sr = this.ctx.sampleRate;
+    const len = Math.max(1, Math.floor(sr*dur));
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1 - i/len);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const filt = this.ctx.createBiquadFilter();
+    filt.type = type; filt.frequency.value = freq; filt.Q.value = q;
+    const g = this.ctx.createGain(); g.gain.value = vol;
+    src.connect(filt); filt.connect(g); g.connect(this.master);
+    src.start();
+  }
+  _tone(freq, dur, vol, type='sine', sweep=null) {
+    if (!this.ctx || this.muted) return;
+    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = 0;
+    o.connect(g); g.connect(this.master);
+    const t = this.ctx.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    if (sweep) o.frequency.exponentialRampToValueAtTime(sweep, t+dur);
+    o.start(t); o.stop(t+dur+0.05);
+  }
+  footstep(speed) {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const gap = speed==='sneak' ? 0.58 : speed==='sprint' ? 0.27 : 0.42;
+    if (now - this.lastFootstep < gap) return;
+    this.lastFootstep = now;
+    const freq = speed==='sneak' ? 90 : speed==='sprint' ? 180 : 130;
+    const vol  = speed==='sneak' ? 0.04 : speed==='sprint' ? 0.18 : 0.10;
+    this._noise(0.07, freq, 1.8, vol);
+  }
+  keyChime() {
+    [1320, 1760, 2640].forEach((f,i)=>{
+      setTimeout(()=>this._tone(f, 0.4, 0.18, 'sine'), i*70);
+    });
+  }
+  alertSting() {
+    this._tone(880, 0.18, 0.25, 'sawtooth', 1320);
+    setTimeout(()=>this._tone(660, 0.25, 0.18, 'square', 440), 120);
+  }
+  doorMove() { this._noise(0.35, 320, 2.5, 0.12); }
+  doorThud() { this._noise(0.15, 90,  4.0, 0.18); }
+  paperThrow() { this._noise(0.18, 1200, 5, 0.09); }
+  paperImpact() { this._noise(0.10, 1500, 6, 0.13); }
+  lockerOpen() { this._noise(0.28, 480, 3, 0.13); setTimeout(()=>this._tone(220,0.18,0.10,'square'),60); }
+  lockerClose() { this._noise(0.15, 360, 3, 0.16); }
+  noteRustle() { this._noise(0.20, 2400, 4, 0.06); }
+  bookFlip()   { this._noise(0.18, 900, 3, 0.07); }
+  caught() {
+    this._tone(440, 0.12, 0.3, 'square', 220);
+    setTimeout(()=>this._tone(330, 0.18, 0.3, 'square', 165), 120);
+    setTimeout(()=>this._tone(220, 0.4, 0.32, 'sawtooth', 110), 280);
+  }
+  escape() {
+    [523, 659, 784, 1047].forEach((f,i)=>{
+      setTimeout(()=>this._tone(f, 0.5, 0.18, 'triangle'), i*120);
+    });
+  }
+  _startAmbient() {
+    if (!this.ctx) return;
+    // Low drone with slow LFO for tension
+    const drone = this.ctx.createOscillator();
+    drone.type = 'sawtooth'; drone.frequency.value = 55;
+    const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.13;
+    const lfoG = this.ctx.createGain(); lfoG.gain.value = 6;
+    lfo.connect(lfoG); lfoG.connect(drone.frequency);
+    const filt = this.ctx.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value = 240;
+    const g = this.ctx.createGain(); g.gain.value = 0.035;
+    drone.connect(filt); filt.connect(g); g.connect(this.master);
+    drone.start(); lfo.start();
+    this.ambient = { drone, g };
+  }
+  _startHeartbeat() {
+    if (!this.ctx) return;
+    this.heartbeatGain = this.ctx.createGain();
+    this.heartbeatGain.gain.value = 0;
+    this.heartbeatGain.connect(this.master);
+    const tick = () => {
+      this._heartbeatPulse();
+      const period = Math.max(280, 900 - this.heartbeatBPM*3);
+      this.heartbeatTimer = setTimeout(tick, period);
+    };
+    tick();
+  }
+  _heartbeatPulse() {
+    if (!this.ctx || !this.heartbeatGain) return;
+    const t = this.ctx.currentTime;
+    [0, 0.16].forEach(off=>{
+      const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+      o.type='sine'; o.frequency.value = 60 - off*120;
+      o.connect(g); g.connect(this.heartbeatGain);
+      const tt = t + off;
+      g.gain.setValueAtTime(0, tt);
+      g.gain.linearRampToValueAtTime(0.7, tt+0.018);
+      g.gain.exponentialRampToValueAtTime(0.001, tt+0.16);
+      o.start(tt); o.stop(tt+0.2);
+    });
+  }
+  setHeartbeat(intensity) {
+    // intensity 0..1 — controls volume and BPM
+    if (!this.heartbeatGain) return;
+    const v = Math.max(0, Math.min(1, intensity));
+    this.heartbeatGain.gain.linearRampToValueAtTime(v*0.35, this.ctx.currentTime+0.3);
+    this.heartbeatBPM = 60 + v*80;  // 60..140 BPM
+  }
+  _startChaseLayer() {
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    o.type = 'sawtooth'; o.frequency.value = 110;
+    const filt = this.ctx.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value = 600;
+    const g = this.ctx.createGain(); g.gain.value = 0;
+    o.connect(filt); filt.connect(g); g.connect(this.master);
+    o.start();
+    this.chaseOsc = o; this.chaseGain = g; this.chaseFilt = filt;
+  }
+  setChaseIntensity(v) {
+    if (!this.chaseGain) return;
+    const vv = Math.max(0, Math.min(1, v));
+    this.chaseGain.gain.linearRampToValueAtTime(vv*0.06, this.ctx.currentTime+0.2);
+    if (this.chaseOsc) this.chaseOsc.frequency.linearRampToValueAtTime(110 + vv*60, this.ctx.currentTime+0.5);
+    if (this.chaseFilt) this.chaseFilt.frequency.linearRampToValueAtTime(400 + vv*1200, this.ctx.currentTime+0.5);
+  }
+}
+const audio = new GameAudio();
+
+function toggleAudio() {
+  audio.setMute(!audio.muted);
+  document.getElementById('audio-toggle').textContent = audio.muted ? '🔇 Muted' : '🔊 Audio';
+}
+
 // ─── TEACHER TYPES ────────────────────────────────────────────────────────────
 const TEACHER_TYPES = [
   { id:'davis',    name:'Mr. Davis',    gender:'male',   bodyColor:0x334488, headColor:0xffcc88,
@@ -314,6 +651,14 @@ const TEACHER_TYPES = [
     talkFail:'Mr. Brooks slams a book shut. "Do you think I was born yesterday? Move."',
     flirtWin:'Mr. Brooks stares blankly. "I… what. Please just leave the premises."',
     flirtFail:'Mr. Brooks points at the door. "Out. Right now. I\'m calling security."' },
+  { id:'jenkins',  name:'Mr. Jenkins',  gender:'male',   personality:'janitor', bodyColor:0x445544, headColor:0xffcc88,
+    patrolSpeed:0.020, chaseSpeed:0.040, detectionRange:6.5, sneakRange:3.0,
+    talkChance:0.85, flirtChance:0.20,
+    quote:'Aw, hell, kid. You ain\'t supposed to be here…',
+    talkWin:'Mr. Jenkins leans on his mop. "Bus stop\'s out south. Make it quick, I never saw ya."',
+    talkFail:'Mr. Jenkins shakes his head. "Story don\'t add up. Office it is."',
+    flirtWin:'Mr. Jenkins laughs heartily. "Aw, get outta here ya little goofball. South door."',
+    flirtFail:'Mr. Jenkins frowns. "Hey now. That ain\'t how we talk to staff. Office."' },
 ];
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -340,6 +685,40 @@ let stamina = STAMINA_MAX;     // current stamina (seconds)
 let sprintLocked = false;      // true after hitting 0 — must reach 30% before sprinting again
 let isSprinting  = false;      // true only when actually moving + shifting + stamina > 0
 let animDt = 1/60;             // real delta-time (seconds) updated each frame
+
+// ─── HIDING / LOCKERS ─────────────────────────────────────────────────────────
+const lockers = [];        // {mesh, x, z, facing, occupied}
+let isHiding = false;
+let hidingLocker = null;
+let _prevKeyF = false;
+
+// ─── PAPER AIRPLANE DISTRACTIONS ──────────────────────────────────────────────
+const paperPlanes = [];
+let paperCount = 3;
+let _prevKeyG = false;
+const PAPER_SPEED = 0.42;
+const PAPER_NOISE_RADIUS = 11;
+
+// ─── NOTES (collectibles for lore + score) ────────────────────────────────────
+const noteObjects = [];   // {mesh, read, text:{title,body}}
+let notesRead = 0;
+let activeNote = null;
+
+// ─── DAY/NIGHT ATMOSPHERE ─────────────────────────────────────────────────────
+const dayNight = { t: 0, duration: 240 }; // seconds for full sunset->night
+let ambientLight = null;
+
+// ─── DETECTION / STATS ────────────────────────────────────────────────────────
+let currentVisibility = 0;   // 0..1 — visibility meter
+let timesSpotted = 0;        // for end-game stat
+let _wasSpotted = false;     // edge-detect new spots
+
+// ─── PLAYER LIMBS (animation refs filled in later) ────────────────────────────
+let leftArmMesh=null, rightArmMesh=null, leftLegMesh=null, rightLegMesh=null;
+let walkPhase = 0;
+
+// ─── FLICKERING LIGHTS ────────────────────────────────────────────────────────
+const flickerLights = [];   // {light, baseIntensity, nextFlick, flickering, flickEnd}
 
 // ─── BOOK MECHANIC ────────────────────────────────────────────────────────────
 let holdingBook  = false;
@@ -368,17 +747,24 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 20, 60);
+// Start at sunset — warm orange sky
+scene.background = new THREE.Color(0xff9558);
+scene.fog = new THREE.Fog(0xff9558, 20, 55);
 
 const camera = new THREE.PerspectiveCamera(100, 1, 0.1, 200);
 
-scene.add(new THREE.AmbientLight(0xfff5e0, 0.55));
-const sun = new THREE.DirectionalLight(0xfff5e0, 0.9);
-sun.position.set(15,30,15); sun.castShadow = true;
+ambientLight = new THREE.AmbientLight(0xfff0d8, 0.55);
+scene.add(ambientLight);
+const sun = new THREE.DirectionalLight(0xffaa66, 0.95);
+sun.position.set(15,18,15); sun.castShadow = true;
 sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{near:0.5,far:120,left:-50,right:50,top:50,bottom:-50});
 scene.add(sun);
+
+// Moonlight (will fade in as night arrives)
+const moon = new THREE.DirectionalLight(0xaaccff, 0);
+moon.position.set(-15, 28, -10);
+scene.add(moon);
 
 // ─── MATERIALS ────────────────────────────────────────────────────────────────
 const mats = {
@@ -395,6 +781,10 @@ const mats = {
   player:     new THREE.MeshLambertMaterial({color:0x4488ff}),
   key:        new THREE.MeshLambertMaterial({color:0xffd700, emissive:0x886600}),
   window:     new THREE.MeshLambertMaterial({color:0x88ccff, transparent:true, opacity:0.4}),
+  lockerBody: new THREE.MeshLambertMaterial({color:0x6a8caa}),
+  lockerDoor: new THREE.MeshLambertMaterial({color:0x88aacc}),
+  note:       new THREE.MeshLambertMaterial({color:0xfff0cc, emissive:0x554422}),
+  paper:      new THREE.MeshLambertMaterial({color:0xfafafa}),
 };
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -471,10 +861,11 @@ function buildSchool() {
   // Windows
   for(let z=-14;z<=14;z+=7) box(2.5,1.5,0.1,mats.window,43.95,2.5,z); // east wall
   for(let x=25;x<=43;x+=6){ box(2.5,1.5,0.1,mats.window,x,2.5,-17.95); box(2.5,1.5,0.1,mats.window,x,2.5,17.95); }
-  // Ceiling lights
-  [[28,-8],[28,0],[28,8],[35,-10],[35,0],[35,10],[42,-10],[42,0],[42,10]].forEach(([x,z])=>{
-    const pl=new THREE.PointLight(0xffeecc,0.5,12); pl.position.set(x,4,z); scene.add(pl);
+  // Ceiling lights (library) — some flicker
+  [[28,-8,false],[28,0,true],[28,8,false],[35,-10,false],[35,0,false],[35,10,true],[42,-10,false],[42,0,false],[42,10,false]].forEach(([x,z,flick])=>{
+    const pl=new THREE.PointLight(0xffeecc,0.85,14); pl.position.set(x,4,z); scene.add(pl);
     box(0.4,0.1,0.4,mats.ceiling,x,3.95,z);
+    if (flick) flickerLights.push({light:pl, baseIntensity:0.85, nextFlick:Math.random()*8+2, flickering:false, flickEnd:0});
   });
   furnishLibrary();
 
@@ -516,12 +907,18 @@ function buildSchool() {
   for (let x=-18;x<=18;x+=5) box(2.5,1.5,0.1,mats.window,x,2.5,-17.95);
   for (let z=-14;z<=14;z+=5) box(0.1,1.5,2.5,mats.window,21.95,2.5,z);
 
-  // Ceiling lights
-  [[-10,-10],[0,-10],[10,-10],[-10,0],[0,0],[10,0],[-10,10],[0,10],[10,10]].forEach(([x,z])=>{
-    const pl=new THREE.PointLight(0xffeecc,0.5,12);
+  // Ceiling lights (main building) — half flicker dramatically
+  [[-10,-10,false],[0,-10,true],[10,-10,false],[-10,0,true],[0,0,false],[10,0,false],[-10,10,false],[0,10,true],[10,10,false]].forEach(([x,z,flick])=>{
+    const pl=new THREE.PointLight(0xffeecc,0.85,14);
     pl.position.set(x,4,z); scene.add(pl);
     box(0.4,0.1,0.4,mats.ceiling,x,3.95,z);
+    if (flick) flickerLights.push({light:pl, baseIntensity:0.85, nextFlick:Math.random()*7+3, flickering:false, flickEnd:0});
   });
+
+  // Add lockers, notes, dust particles
+  buildLockers();
+  spawnNotes();
+  buildDustParticles();
 }
 
 function furnishClassroom(cx,cz) {
@@ -592,6 +989,143 @@ function furnishLibrary() {
   box(0.4,0.06,0.4, new THREE.MeshLambertMaterial({color:0x336633,emissive:0x114411}), 43.7,1.33, 0.2);
 }
 
+// ─── LOCKERS ─────────────────────────────────────────────────────────────────
+// Solid lockers placed along walls. Press F when near to climb in & hide.
+function makeLocker(x, z, facing) {
+  // facing: +1 = door faces +z, -1 = door faces -z, +2 = +x, -2 = -x
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.5), mats.lockerBody);
+  body.position.y = 0.9; body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+  // Door panel
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.66, 1.7, 0.04), mats.lockerDoor);
+  door.position.y = 0.9;
+  if (Math.abs(facing) === 1) door.position.z = facing * 0.26;
+  else                        door.position.x = (facing>0?1:-1) * 0.36;
+  g.add(door);
+  // Vent slits
+  const slitMat = new THREE.MeshBasicMaterial({color:0x222222});
+  for (let i=0;i<3;i++) {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.03, 0.045), slitMat);
+    s.position.y = 1.4 - i*0.06;
+    if (Math.abs(facing) === 1) s.position.z = facing * 0.28;
+    else                        { s.position.x = (facing>0?1:-1)*0.38; s.geometry = new THREE.BoxGeometry(0.045,0.03,0.32); }
+    g.add(s);
+  }
+  // Handle
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.12), new THREE.MeshLambertMaterial({color:0x222222}));
+  handle.position.y = 0.85;
+  if (Math.abs(facing) === 1) { handle.position.z = facing * 0.30; handle.position.x = 0.22; }
+  else                        { handle.position.x = (facing>0?1:-1)*0.40; handle.position.z = 0.22; }
+  g.add(handle);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  // Collision (slightly smaller than visual)
+  walls.push({minX:x-0.36, maxX:x+0.36, minZ:z-0.26, maxZ:z+0.26});
+  lockers.push({mesh:g, x, z, facing, doorMesh:door});
+}
+
+function buildLockers() {
+  // North hallway lockers (face south, toward corridor)
+  for (let x=-18; x<=18; x+=1.5) {
+    if (Math.abs(x) < 4) continue; // gap for doors
+    if (Math.abs(x+12)<2 || Math.abs(x-12)<2) continue;
+    makeLocker(x, -5.6, +1);
+  }
+  // South hallway lockers (face north, toward corridor)
+  for (let x=-18; x<=18; x+=1.5) {
+    if (Math.abs(x) < 4) continue;
+    if (Math.abs(x+12)<2 || Math.abs(x-12)<2) continue;
+    makeLocker(x, 5.6, -1);
+  }
+  // West wall lockers
+  for (let z=-3.5; z<=3.5; z+=1.5) {
+    makeLocker(-21.4, z, +2);
+  }
+}
+
+// ─── NOTES ────────────────────────────────────────────────────────────────────
+const NOTE_LIBRARY = [
+  { title:"Diary — Tuesday",
+    body:'Mr. Brooks confiscated my phone AGAIN. He stashes everything in his desk drawer in the library after hours.\n\nWhoever finds this — please rescue it. I\'ll owe you forever.\n\n— J' },
+  { title:"Note from a Friend",
+    body:'Hey,\n\nMeet me at the south doors at 9 sharp. The night janitor (Mr. Jenkins) is usually chill, but if Ms. Harris is patrolling — RUN. She does NOT mess around.\n\nP.S. Stay out of the principal\'s office. Trust me.' },
+  { title:"Hall Pass",
+    body:'This pass authorizes the bearer to be in the building after-hours for the purpose of retrieving forgotten items.\n\n— Ms. Rivera\n\n(Please don\'t tell anyone I gave you this. Seriously. I\'ll get fired.)' },
+  { title:"After-Hours Schedule",
+    body:'7:00 PM — Final bell\n7:30 PM — Doors lock\n8:00 PM — Janitor sweeps hallways\n9:00 PM — Master lockup\n\nNo students permitted in building after 7 PM. NO EXCEPTIONS.' },
+  { title:"Mike's Notebook",
+    body:'I was just trying to grab my baseball cap from gym class.\n\nNow the lights are dimming, the teachers are everywhere, and the doors won\'t open.\n\nIf you\'re reading this — get out. Get out NOW.' },
+];
+
+const NOTE_SPAWN_POOL = [
+  {x:-16,z:-15}, {x:18,z:-13}, {x:-14,z:14}, {x:11,z:13},
+  {x:42,z:-12}, {x:43,z:12}, {x:-19,z:0}, {x:21,z:0},
+  {x:34,z:-12}, {x:8,z:-15}, {x:-9,z:15},
+];
+
+function spawnNotes() {
+  const pool = [...NOTE_SPAWN_POOL];
+  for (let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const slots = pool.slice(0, NOTE_LIBRARY.length);
+  slots.forEach((pos,i)=>{
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.04,0.36), mats.note);
+    m.position.set(pos.x, 0.05, pos.z);
+    m.rotation.y = Math.random()*0.5 - 0.25;
+    scene.add(m);
+    // Floating glow indicator above
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8),
+      new THREE.MeshBasicMaterial({color:0xffee99, transparent:true, opacity:0.7}));
+    glow.position.copy(m.position); glow.position.y = 0.6;
+    scene.add(glow);
+    noteObjects.push({mesh:m, glow, x:pos.x, z:pos.z, read:false, text:NOTE_LIBRARY[i]});
+  });
+}
+
+// ─── DUST PARTICLES (atmosphere) ─────────────────────────────────────────────
+let dustParticles = null;
+function buildDustParticles() {
+  const COUNT = 380;
+  const geom = new THREE.BufferGeometry();
+  const pos = new Float32Array(COUNT*3);
+  const vel = new Float32Array(COUNT*3);
+  for (let i=0;i<COUNT;i++){
+    pos[i*3]   = Math.random()*66 - 22;
+    pos[i*3+1] = Math.random()*3 + 0.5;
+    pos[i*3+2] = Math.random()*36 - 18;
+    vel[i*3]   = (Math.random()-0.5)*0.001;
+    vel[i*3+1] = Math.random()*0.0015 + 0.0003;
+    vel[i*3+2] = (Math.random()-0.5)*0.001;
+  }
+  geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    color:0xffeecc, size:0.04, transparent:true, opacity:0.45,
+    sizeAttenuation:true
+  });
+  dustParticles = new THREE.Points(geom, mat);
+  dustParticles.userData.vel = vel;
+  dustParticles.userData.count = COUNT;
+  scene.add(dustParticles);
+}
+
+function updateDustParticles() {
+  if (!dustParticles) return;
+  const pos = dustParticles.geometry.attributes.position.array;
+  const vel = dustParticles.userData.vel;
+  const c = dustParticles.userData.count;
+  for (let i=0;i<c;i++){
+    pos[i*3]   += vel[i*3];
+    pos[i*3+1] += vel[i*3+1];
+    pos[i*3+2] += vel[i*3+2];
+    if (pos[i*3+1] > 3.8) {
+      pos[i*3]   = Math.random()*66 - 22;
+      pos[i*3+1] = 0.2;
+      pos[i*3+2] = Math.random()*36 - 18;
+    }
+  }
+  dustParticles.geometry.attributes.position.needsUpdate = true;
+}
+
 // ─── KEYS ─────────────────────────────────────────────────────────────────────
 // Large pool of safe floor positions across the whole map.
 // Avoids furniture clusters, desks, shelves, and walls.
@@ -634,12 +1168,43 @@ function spawnKeys() {
 
 // ─── PLAYER ───────────────────────────────────────────────────────────────────
 const playerGroup=new THREE.Group(); scene.add(playerGroup);
-const body=new THREE.Mesh(new THREE.BoxGeometry(0.6,1.2,0.4),mats.player);
-body.position.y=0.6; body.castShadow=true; playerGroup.add(body);
-const phead=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.45,0.45),new THREE.MeshLambertMaterial({color:0xffcc88}));
-phead.position.y=1.45; phead.castShadow=true; playerGroup.add(phead);
-const pbp=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.7,0.2),new THREE.MeshLambertMaterial({color:0x224488}));
-pbp.position.set(0,0.75,-0.28); playerGroup.add(pbp);
+// Torso (narrower so limbs read better)
+const body=new THREE.Mesh(new THREE.BoxGeometry(0.50,0.80,0.32),mats.player);
+body.position.y=0.95; body.castShadow=true; playerGroup.add(body);
+// Hips
+const hips=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.20,0.30), new THREE.MeshLambertMaterial({color:0x223366}));
+hips.position.y=0.50; playerGroup.add(hips);
+// Head
+const phead=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42),new THREE.MeshLambertMaterial({color:0xffcc88}));
+phead.position.y=1.60; phead.castShadow=true; playerGroup.add(phead);
+// Hair
+const phair=new THREE.Mesh(new THREE.BoxGeometry(0.44,0.10,0.44), new THREE.MeshLambertMaterial({color:0x331a0a}));
+phair.position.y=1.83; playerGroup.add(phair);
+// Backpack
+const pbp=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.62,0.20),new THREE.MeshLambertMaterial({color:0xaa3322}));
+pbp.position.set(0,1.0,-0.24); playerGroup.add(pbp);
+// Arms (pivoted at shoulder)
+leftArmMesh = new THREE.Group();
+const lArmShape = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.7,0.18), mats.player);
+lArmShape.position.y = -0.35; leftArmMesh.add(lArmShape);
+leftArmMesh.position.set(-0.34, 1.30, 0);
+playerGroup.add(leftArmMesh);
+rightArmMesh = new THREE.Group();
+const rArmShape = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.7,0.18), mats.player);
+rArmShape.position.y = -0.35; rightArmMesh.add(rArmShape);
+rightArmMesh.position.set( 0.34, 1.30, 0);
+playerGroup.add(rightArmMesh);
+// Legs (pivoted at hip)
+leftLegMesh = new THREE.Group();
+const lLegShape = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.55,0.20), new THREE.MeshLambertMaterial({color:0x222244}));
+lLegShape.position.y = -0.275; leftLegMesh.add(lLegShape);
+leftLegMesh.position.set(-0.13, 0.45, 0);
+playerGroup.add(leftLegMesh);
+rightLegMesh = new THREE.Group();
+const rLegShape = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.55,0.20), new THREE.MeshLambertMaterial({color:0x222244}));
+rLegShape.position.y = -0.275; rightLegMesh.add(rLegShape);
+rightLegMesh.position.set( 0.13, 0.45, 0);
+playerGroup.add(rightLegMesh);
 // Book held in player's hands (visible only while holding a book)
 const heldBookMesh=new THREE.Mesh(
   new THREE.BoxGeometry(0.38,0.05,0.28),
@@ -656,12 +1221,14 @@ heldBookStrip.position.set(0,0.88,0.48+0.11); heldBookStrip.visible=false; playe
 function pickupBook(){
   holdingBook=true; bookTimer=BOOK_DURATION; bookActionCooldown=0.4;
   heldBookMesh.visible=true; heldBookStrip.visible=true;
+  audio.bookFlip();
   showAlert('📖 Reading pose! Teachers ignore you for 5s — hold E to put down',3000);
 }
 function dropBook(){
   holdingBook=false; bookTimer=0; bookCooldown=10.0; bookActionCooldown=0.4;
   heldBookMesh.visible=false; heldBookStrip.visible=false;
   bookHoldFrames=0;
+  audio.bookFlip();
 }
 
 // ─── TEACHERS ─────────────────────────────────────────────────────────────────
@@ -677,8 +1244,9 @@ const PATROL_ROUTES=[
   [{x:18,z:4},  {x:18,z:-4},{x:8,z:-4},{x:8,z:4}],            // east hallway loop
   [{x:-12,z:-4},{x:0,z:-4}, {x:12,z:-4},{x:0,z:4}],           // center sweep
   [{x:-16,z:-10},{x:-6,z:-10},{x:-6,z:-15},{x:-16,z:-15}],    // Room A (NW classroom)
-  [{x:16,z:10},  {x:6,z:10}, {x:6,z:15}, {x:16,z:15}],       // Room D (SE office)
+  [{x:16,z:10},  {x:6,z:10}, {x:6,z:15}, {x:16,z:15}],        // Room D (SE office)
   [{x:28,z:0},{x:34,z:-12},{x:43,z:-12},{x:43,z:12},{x:34,z:12}], // Library (east wing)
+  [{x:-18,z:0},{x:18,z:0},{x:0,z:4},{x:0,z:-4}],              // Janitor — main hallway sweep
 ];
 
 // Safe hallway spawn positions (all clear of furniture and walls)
@@ -694,23 +1262,58 @@ const SAFE_SPAWNS=[
 function makeTeacherMesh(type) {
   const g=new THREE.Group();
   const bw=type.gender==='male'?0.72:0.60;
-  const tbody=new THREE.Mesh(new THREE.BoxGeometry(bw,1.3,0.48),new THREE.MeshLambertMaterial({color:type.bodyColor}));
-  tbody.position.y=0.65; tbody.castShadow=true; g.add(tbody);
-  const thead=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.48,0.48),new THREE.MeshLambertMaterial({color:type.headColor}));
-  thead.position.y=1.55; thead.castShadow=true; g.add(thead);
-  const coneMat=new THREE.MeshBasicMaterial({color:0xffff00,transparent:true,opacity:0.18});
-  const cone=new THREE.Mesh(new THREE.ConeGeometry(0.3,1.2,8),coneMat);
-  cone.position.set(0,1.0,0.9); cone.rotation.x=-Math.PI/2.5; g.add(cone);
-  g.userData.coneMat=coneMat; // stored so alerted state can turn it red
+  const tbody=new THREE.Mesh(new THREE.BoxGeometry(bw,0.85,0.40),new THREE.MeshLambertMaterial({color:type.bodyColor}));
+  tbody.position.y=1.00; tbody.castShadow=true; g.add(tbody);
+  const thips=new THREE.Mesh(new THREE.BoxGeometry(bw-0.05,0.22,0.36),new THREE.MeshLambertMaterial({color:0x222222}));
+  thips.position.y=0.50; g.add(thips);
+  const thead=new THREE.Mesh(new THREE.BoxGeometry(0.46,0.46,0.46),new THREE.MeshLambertMaterial({color:type.headColor}));
+  thead.position.y=1.65; thead.castShadow=true; g.add(thead);
+  // Hair / hat
+  const hairColor = type.id==='jenkins' ? 0x886644 : type.gender==='male' ? 0x442211 : 0x664422;
+  const thair=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.10,0.48),new THREE.MeshLambertMaterial({color:hairColor}));
+  thair.position.y=1.86; g.add(thair);
+  // Arms
+  const armMat = new THREE.MeshLambertMaterial({color:type.bodyColor});
+  const lArm = new THREE.Group(); const lArmS = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.65,0.18), armMat);
+  lArmS.position.y=-0.325; lArm.add(lArmS); lArm.position.set(-bw/2-0.08, 1.32, 0); g.add(lArm);
+  const rArm = new THREE.Group(); const rArmS = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.65,0.18), armMat);
+  rArmS.position.y=-0.325; rArm.add(rArmS); rArm.position.set( bw/2+0.08, 1.32, 0); g.add(rArm);
+  // Legs
+  const lLeg = new THREE.Group(); const lLegS = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.50,0.20), new THREE.MeshLambertMaterial({color:0x222244}));
+  lLegS.position.y=-0.25; lLeg.add(lLegS); lLeg.position.set(-0.14,0.46,0); g.add(lLeg);
+  const rLeg = new THREE.Group(); const rLegS = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.50,0.20), new THREE.MeshLambertMaterial({color:0x222244}));
+  rLegS.position.y=-0.25; rLeg.add(rLegS); rLeg.position.set( 0.14,0.46,0); g.add(rLeg);
+  // Janitor — give a mop
+  if (type.id === 'jenkins') {
+    const mopHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.6,8), new THREE.MeshLambertMaterial({color:0x884422}));
+    mopHandle.position.set(0.4, 1.0, 0.4); mopHandle.rotation.z = 0.4; g.add(mopHandle);
+    const mopHead = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.3), new THREE.MeshLambertMaterial({color:0xeeeeee}));
+    mopHead.position.set(0.7, 0.15, 0.4); g.add(mopHead);
+  }
+  // Vision cone — wider/longer to match new LOS-aware detection
+  const coneMat=new THREE.MeshBasicMaterial({color:0xffff00,transparent:true,opacity:0.16});
+  const coneRange = type.detectionRange * 0.75;
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(coneRange*0.45, coneRange, 12),coneMat);
+  cone.position.set(0, 1.0, coneRange*0.5 + 0.2);
+  cone.rotation.x = -Math.PI/2; g.add(cone);
+  g.userData.coneMat = coneMat;
+  g.userData.leftArm = lArm; g.userData.rightArm = rArm;
+  g.userData.leftLeg = lLeg; g.userData.rightLeg = rLeg;
   return g;
 }
 
 function spawnTeachers() {
-  shuffle([...TEACHER_TYPES]).forEach((type,i)=>{
+  const shuffled = shuffle([...TEACHER_TYPES]);
+  shuffled.forEach((type,i)=>{
+    if (i >= PATROL_ROUTES.length) return;
     const route=PATROL_ROUTES[i], start=route[0];
     const group=makeTeacherMesh(type);
     group.position.set(start.x,0,start.z); scene.add(group);
-    teachers.push({type,group,patrol:route,patrolIdx:0,alerted:false,alertTimer:0,stunTimer:0,doorBlockTimer:0});
+    teachers.push({
+      type, group, patrol:route, patrolIdx:0,
+      alerted:false, alertTimer:0, stunTimer:0, doorBlockTimer:0,
+      investigateX:0, investigateZ:0, investigating:0, walkPhase:Math.random()*Math.PI*2
+    });
   });
 }
 
@@ -729,10 +1332,340 @@ function respawnTeacher(t, stayAlerted=false) {
   t.patrolIdx=0;
 }
 
+// ─── LINE OF SIGHT ────────────────────────────────────────────────────────────
+// Returns true if there's a clear line from (ax,az) to (bx,bz) through the
+// `walls` array. Door wall-entries are temporarily removed when open, so this
+// works automatically through open doors. Lockers also block LOS.
+function clearLineOfSight(ax, az, bx, bz) {
+  const dx = bx-ax, dz = bz-az;
+  const dist = Math.sqrt(dx*dx + dz*dz);
+  if (dist < 0.5) return true;
+  const steps = Math.max(2, Math.ceil(dist / 0.35));
+  const ix = dx/steps, iz = dz/steps;
+  for (let i=1; i<steps; i++) {
+    const x = ax + ix*i, z = az + iz*i;
+    for (const w of walls) {
+      if (x > w.minX+0.02 && x < w.maxX-0.02 && z > w.minZ+0.02 && z < w.maxZ-0.02) return false;
+    }
+  }
+  return true;
+}
+
+// Realistic vision: in cone of view + line of sight clear + range
+function teacherCanSeePlayer(t) {
+  if (isHiding) return false;
+  const tx = t.group.position.x, tz = t.group.position.z;
+  const px = playerGroup.position.x, pz = playerGroup.position.z;
+  const dx = px - tx, dz = pz - tz;
+  const dist = Math.sqrt(dx*dx + dz*dz);
+  if (dist < 1.2) return clearLineOfSight(tx, tz, px, pz); // proximity bypass
+  const range = (keys['KeyC'] ? t.type.sneakRange : t.type.detectionRange) * (holdingBook?0.4:1);
+  if (dist > range) return false;
+  // FOV cone
+  const teacherFacing = t.group.rotation.y;
+  const angleToPlayer = Math.atan2(dx, dz);
+  let diff = angleToPlayer - teacherFacing;
+  while (diff > Math.PI)  diff -= 2*Math.PI;
+  while (diff < -Math.PI) diff += 2*Math.PI;
+  const fov = t.alerted ? (Math.PI*0.95) : (Math.PI*0.55); // ~100° normal, ~170° alerted
+  if (Math.abs(diff) > fov/2) return false;
+  return clearLineOfSight(tx, tz, px, pz);
+}
+
+// ─── SOUND EMISSION (sprint / paper / shove) ─────────────────────────────────
+function emitSoundPulse(x, z, radius, source='player') {
+  teachers.forEach(t=>{
+    const dx = t.group.position.x - x, dz = t.group.position.z - z;
+    const d = Math.sqrt(dx*dx + dz*dz);
+    if (d < radius && t.stunTimer<=0) {
+      if (!t.alerted) {
+        showAlert(`👂 ${t.type.name} heard something!`);
+        audio.alertSting();
+      }
+      t.alerted = true;
+      t.alertTimer = Math.max(t.alertTimer, 180);
+      // If they can't currently see the player, route to investigate point
+      if (!teacherCanSeePlayer(t)) {
+        t.investigating = 180;
+        t.investigateX = x;
+        t.investigateZ = z;
+      }
+    }
+  });
+}
+
+// ─── HIDING / LOCKERS ─────────────────────────────────────────────────────────
+function nearestLocker() {
+  let best=null, bestD=Infinity;
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  for (const l of lockers) {
+    const dx=l.x-px, dz=l.z-pz;
+    const d = Math.sqrt(dx*dx+dz*dz);
+    if (d < 1.4 && d < bestD) { best=l; bestD=d; }
+  }
+  return best;
+}
+
+function enterLocker(l) {
+  isHiding = true;
+  hidingLocker = l;
+  playerGroup.position.set(l.x, 0, l.z);
+  playerGroup.visible = false;
+  document.getElementById('hiding-overlay').classList.add('active');
+  audio.lockerOpen();
+  showAlert('🚪 Hidden in locker — teachers can\'t see you', 2500);
+}
+
+function exitLocker() {
+  if (!hidingLocker) return;
+  // Move player just in front of locker
+  const l = hidingLocker;
+  const offX = Math.abs(l.facing)===2 ? Math.sign(l.facing)*1.0 : 0;
+  const offZ = Math.abs(l.facing)===1 ? l.facing*1.0 : 0;
+  playerGroup.position.set(l.x + offX, 0, l.z + offZ);
+  isHiding = false;
+  hidingLocker = null;
+  playerGroup.visible = !firstPerson;
+  document.getElementById('hiding-overlay').classList.remove('active');
+  audio.lockerClose();
+}
+
+// ─── PAPER AIRPLANES ──────────────────────────────────────────────────────────
+function throwPaperPlane() {
+  if (paperCount <= 0) { showAlert('No paper airplanes left!', 1500); return; }
+  paperCount--;
+  document.getElementById('paper-count').textContent = paperCount;
+  const mesh = new THREE.Mesh(
+    new THREE.ConeGeometry(0.12, 0.45, 4),
+    mats.paper
+  );
+  mesh.rotation.z = Math.PI/2;
+  const sx = playerGroup.position.x + Math.sin(camYaw)*0.6;
+  const sz = playerGroup.position.z + Math.cos(camYaw)*0.6;
+  mesh.position.set(sx, 1.3, sz);
+  mesh.rotation.y = camYaw;
+  scene.add(mesh);
+  paperPlanes.push({
+    mesh,
+    vx: Math.sin(camYaw)*PAPER_SPEED,
+    vz: Math.cos(camYaw)*PAPER_SPEED,
+    vy: 0.03,
+    life: 120,
+    spin: Math.random()*0.1
+  });
+  audio.paperThrow();
+  showAlert('✈️ Paper airplane thrown!', 1200);
+}
+
+function updatePaperPlanes() {
+  for (let i=paperPlanes.length-1; i>=0; i--) {
+    const p = paperPlanes[i];
+    p.mesh.position.x += p.vx;
+    p.mesh.position.z += p.vz;
+    p.mesh.position.y += p.vy;
+    p.vy -= 0.0015;
+    p.mesh.rotation.z += p.spin;
+    p.life--;
+    const hit = collidesWithWalls(p.mesh.position.x, p.mesh.position.z, 0.1);
+    const grounded = p.mesh.position.y < 0.05;
+    if (p.life <= 0 || hit || grounded) {
+      audio.paperImpact();
+      emitSoundPulse(p.mesh.position.x, p.mesh.position.z, PAPER_NOISE_RADIUS, 'paper');
+      // visual flash where it lands
+      const flashPos = p.mesh.position.clone();
+      scene.remove(p.mesh);
+      paperPlanes.splice(i, 1);
+      // Drop a paper "marker" briefly
+      const marker = new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.3), mats.paper);
+      marker.rotation.x = -Math.PI/2;
+      marker.position.set(flashPos.x, 0.02, flashPos.z);
+      scene.add(marker);
+      setTimeout(()=>scene.remove(marker), 4000);
+    }
+  }
+}
+
+// ─── NOTES ────────────────────────────────────────────────────────────────────
+function nearestNote() {
+  let best=null, bestD=Infinity;
+  const px=playerGroup.position.x, pz=playerGroup.position.z;
+  for (const n of noteObjects) {
+    if (n.read) continue;
+    const dx=n.x-px, dz=n.z-pz;
+    const d=Math.sqrt(dx*dx+dz*dz);
+    if (d<1.4 && d<bestD) { best=n; bestD=d; }
+  }
+  return best;
+}
+
+function openNote(n) {
+  activeNote = n;
+  document.getElementById('note-title').textContent = n.text.title;
+  document.getElementById('note-body').textContent = n.text.body;
+  document.getElementById('note-reader').classList.add('active');
+  audio.noteRustle();
+  gameRunning = false;
+  _pauseStart = Date.now();
+  document.exitPointerLock();
+}
+
+function closeNote() {
+  if (!activeNote) return;
+  if (!activeNote.read) {
+    activeNote.read = true;
+    notesRead++;
+    document.getElementById('note-count').textContent = notesRead;
+    // Hide the note objects
+    activeNote.mesh.visible = false;
+    activeNote.glow.visible = false;
+  }
+  activeNote = null;
+  document.getElementById('note-reader').classList.remove('active');
+  if (_pauseStart) { pausedDuration += Date.now() - _pauseStart; _pauseStart = 0; }
+  if (!caught && !escaped) {
+    gameRunning = true;
+    renderer.domElement.requestPointerLock();
+  }
+}
+
+function updateNotes() {
+  noteObjects.forEach(n=>{
+    if (n.read) return;
+    n.mesh.rotation.y += 0.005;
+    n.glow.position.y = 0.6 + Math.sin(Date.now()*0.003 + n.x)*0.08;
+    n.glow.material.opacity = 0.5 + Math.sin(Date.now()*0.005 + n.z)*0.25;
+  });
+}
+
+// ─── DAY / NIGHT ATMOSPHERE ──────────────────────────────────────────────────
+function updateDayNight(dt) {
+  dayNight.t = Math.min(1, dayNight.t + dt/dayNight.duration);
+  const t = dayNight.t;
+  // Sunset -> dusk -> night color interpolation
+  const c1 = {r:0xff/255, g:0x95/255, b:0x58/255}; // sunset orange
+  const c2 = {r:0x55/255, g:0x35/255, b:0x6a/255}; // dusk magenta
+  const c3 = {r:0x08/255, g:0x0a/255, b:0x18/255}; // deep night
+  let r,g,b;
+  if (t < 0.5) {
+    const k = t/0.5;
+    r = c1.r*(1-k) + c2.r*k;
+    g = c1.g*(1-k) + c2.g*k;
+    b = c1.b*(1-k) + c2.b*k;
+  } else {
+    const k = (t-0.5)/0.5;
+    r = c2.r*(1-k) + c3.r*k;
+    g = c2.g*(1-k) + c3.g*k;
+    b = c2.b*(1-k) + c3.b*k;
+  }
+  scene.background.setRGB(r,g,b);
+  scene.fog.color.setRGB(r,g,b);
+  scene.fog.near = 20 - t*8;
+  scene.fog.far  = 55 - t*22;
+  sun.intensity = Math.max(0.05, 0.95*(1-t*1.2));
+  sun.position.y = 18 - t*22;
+  ambientLight.intensity = 0.55*(1-t*0.6);
+  moon.intensity = Math.max(0, t-0.4) * 0.45;
+}
+
+// ─── FLICKERING LIGHTS ───────────────────────────────────────────────────────
+function updateFlickerLights(dt) {
+  flickerLights.forEach(fl=>{
+    fl.nextFlick -= dt;
+    if (fl.flickering) {
+      if (performance.now() > fl.flickEnd) {
+        fl.flickering = false;
+        fl.light.intensity = fl.baseIntensity * (0.85 + dayNight.t*0.4);
+        fl.nextFlick = Math.random()*8 + 3;
+      } else {
+        fl.light.intensity = Math.random() * fl.baseIntensity * 0.7;
+      }
+    } else if (fl.nextFlick <= 0) {
+      fl.flickering = true;
+      fl.flickEnd = performance.now() + 250 + Math.random()*450;
+    }
+  });
+}
+
+// ─── PLAYER LIMB ANIMATION ───────────────────────────────────────────────────
+function animatePlayerLimbs(moving, speedFactor) {
+  if (!leftArmMesh) return;
+  if (moving) {
+    walkPhase += animDt * 8 * speedFactor;
+    const swing = Math.sin(walkPhase) * 0.7 * Math.min(1.2, speedFactor);
+    leftArmMesh.rotation.x  =  swing;
+    rightArmMesh.rotation.x = -swing;
+    leftLegMesh.rotation.x  = -swing;
+    rightLegMesh.rotation.x =  swing;
+  } else {
+    // Gently relax to neutral
+    leftArmMesh.rotation.x  *= 0.85;
+    rightArmMesh.rotation.x *= 0.85;
+    leftLegMesh.rotation.x  *= 0.85;
+    rightLegMesh.rotation.x *= 0.85;
+  }
+}
+
+function animateTeacherLimbs(t, moving) {
+  const ud = t.group.userData;
+  if (!ud.leftArm) return;
+  if (moving) {
+    t.walkPhase += animDt * (t.alerted ? 11 : 7);
+    const swing = Math.sin(t.walkPhase) * 0.55;
+    ud.leftArm.rotation.x  =  swing;
+    ud.rightArm.rotation.x = -swing;
+    ud.leftLeg.rotation.x  = -swing;
+    ud.rightLeg.rotation.x =  swing;
+  } else {
+    ud.leftArm.rotation.x  *= 0.9; ud.rightArm.rotation.x *= 0.9;
+    ud.leftLeg.rotation.x  *= 0.9; ud.rightLeg.rotation.x *= 0.9;
+  }
+}
+
+// ─── DETECTION METER ─────────────────────────────────────────────────────────
+function updateDetectionMeter() {
+  // Visibility 0..1 — closest "looking at me" teacher dominates
+  let max = 0;
+  let canSee = false;
+  for (const t of teachers) {
+    const dx = t.group.position.x - playerGroup.position.x;
+    const dz = t.group.position.z - playerGroup.position.z;
+    const d = Math.sqrt(dx*dx + dz*dz);
+    const range = (keys['KeyC'] ? t.type.sneakRange : t.type.detectionRange) * (holdingBook?0.4:1);
+    if (t.alerted && teacherCanSeePlayer(t)) { max = 1; canSee = true; break; }
+    if (d < range && teacherCanSeePlayer(t)) {
+      const v = 1 - (d / range);
+      if (v > max) max = v;
+      if (v > 0.6) canSee = true;
+    }
+  }
+  if (isHiding) max = 0;
+  if (holdingBook) max *= 0.3;
+  currentVisibility += (max - currentVisibility) * 0.18;
+  const pct = Math.round(currentVisibility * 100);
+  const fill = document.getElementById('detection-fill');
+  fill.style.width = pct + '%';
+  if (currentVisibility < 0.33)      fill.style.background = '#44aa44';
+  else if (currentVisibility < 0.66) fill.style.background = '#ddaa22';
+  else                                fill.style.background = '#dd3322';
+  // Audio: heartbeat ramps with visibility, chase layer with alerted teachers
+  audio.setHeartbeat(currentVisibility);
+  const alertCount = teachers.filter(t=>t.alerted).length;
+  audio.setChaseIntensity(Math.min(1, alertCount/3));
+  // Vignette
+  document.getElementById('vignette').classList.toggle('alerted', alertCount>0);
+  // Track new spots for score
+  if (canSee && !_wasSpotted) timesSpotted++;
+  _wasSpotted = canSee;
+}
+
 // ─── INPUT ────────────────────────────────────────────────────────────────────
 const keys={};
 document.addEventListener('keydown',e=>{
   keys[e.code]=true;
+  // Note reader can close from anywhere
+  if (activeNote && (e.code==='KeyF' || e.code==='Escape' || e.code==='KeyE' || e.code==='Enter')) {
+    e.preventDefault(); closeNote(); return;
+  }
   if (!gameRunning && !inEncounter) return;
   if (e.code==='Enter'||e.code==='NumpadEnter') {
     e.preventDefault();
@@ -743,8 +1676,16 @@ document.addEventListener('keydown',e=>{
     e.preventDefault();
     toggleMap();
   }
+  if (e.code==='KeyQ' && !inEncounter) {
+    e.preventDefault();
+    toggleAudio();
+  }
 });
 document.addEventListener('keyup',e=>{ keys[e.code]=false; });
+
+document.getElementById('note-reader').addEventListener('click', e=>{
+  if (activeNote) closeNote();
+});
 
 let camYaw=0;
 document.addEventListener('mousemove',e=>{
@@ -849,6 +1790,13 @@ function drawBigMap() {
   ctx.fillStyle='#444'; ctx.font='12px Arial'; ctx.textAlign='center';
   ctx.fillText('Main Hallway',hc.x,hc.y+4);
 
+  // Lockers
+  lockers.forEach(l=>{
+    const p=toM(l.x,l.z);
+    ctx.fillStyle='rgba(170,200,221,0.4)';
+    ctx.fillRect(p.x-2,p.y-2,4,4);
+  });
+
   // Keys — only show ones the player has discovered (been near)
   keyMeshes.forEach(km=>{
     if (km.userData.collected || !km.userData.discovered) return;
@@ -857,6 +1805,18 @@ function drawBigMap() {
     ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#000'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
     ctx.fillText('K',p.x,p.y+3);
+  });
+
+  // Notes — only show discovered ones (close to player)
+  noteObjects.forEach(n=>{
+    if (n.read) return;
+    const dx=playerGroup.position.x-n.x, dz=playerGroup.position.z-n.z;
+    if (Math.sqrt(dx*dx+dz*dz) > 8) return;
+    const p=toM(n.x,n.z);
+    ctx.fillStyle='#ddcc88';
+    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.font='bold 8px Arial'; ctx.textAlign='center';
+    ctx.fillText('N',p.x,p.y+3);
   });
 
   // Exit
@@ -869,7 +1829,10 @@ function drawBigMap() {
   // Teachers
   teachers.forEach(t=>{
     const p=toM(t.group.position.x,t.group.position.z);
-    const col=t.alerted?'#ff3333':t.type.id==='rivera'?'#cc55cc':t.type.gender==='male'?'#4477cc':'#cc4488';
+    const col = t.alerted ? '#ff3333' :
+                t.type.id==='rivera'  ? '#cc55cc' :
+                t.type.id==='jenkins' ? '#88ff88' :
+                t.type.gender==='male'? '#4477cc' : '#cc4488';
     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 8px Arial'; ctx.textAlign='center';
     ctx.fillText(t.type.name.split(' ')[1][0],p.x,p.y+3);
@@ -888,7 +1851,16 @@ function drawBigMap() {
 
   // Legend
   ctx.font='11px Arial'; ctx.textAlign='left';
-  const leg=[['#4477cc','Male teacher'],['#cc4488','Female teacher'],['#cc55cc','Ms. Rivera'],['#ffd700','Key'],['#4488ff','You']];
+  const leg=[
+    ['#4477cc','Male teacher'],
+    ['#cc4488','Female teacher'],
+    ['#cc55cc','Ms. Rivera'],
+    ['#88ff88','Janitor (Jenkins)'],
+    ['#ffd700','Key'],
+    ['#ddcc88','Note'],
+    ['#aaccdd','Locker'],
+    ['#4488ff','You']
+  ];
   leg.forEach(([col,label],i)=>{
     ctx.fillStyle=col; ctx.fillRect(24, H-38-i*18, 10, 10);
     ctx.fillStyle='#aaa'; ctx.fillText(label, 38, H-30-i*18);
@@ -922,16 +1894,40 @@ function drawMinimap() {
   const ep=toMini(0,18);
   miniCtx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
   miniCtx.fillRect(ep.x-6,ep.y-4,12,8);
+  // Lockers (faint)
+  miniCtx.fillStyle='rgba(170,200,221,0.35)';
+  lockers.forEach(l=>{
+    const p=toMini(l.x,l.z);
+    miniCtx.fillRect(p.x-1, p.y-1, 2, 2);
+  });
   // Keys — only show ones the player has discovered (been near)
   keyMeshes.forEach(km=>{
     if (km.userData.collected || !km.userData.discovered) return;
     const p=toMini(km.position.x,km.position.z);
     miniCtx.fillStyle='#ffd700'; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,3.5,0,Math.PI*2); miniCtx.fill();
   });
+  // Notes (only unread + close enough to "discover")
+  noteObjects.forEach(n=>{
+    if (n.read) return;
+    const dx=playerGroup.position.x-n.x, dz=playerGroup.position.z-n.z;
+    if (Math.sqrt(dx*dx+dz*dz) > 6) return;
+    const p=toMini(n.x,n.z);
+    miniCtx.fillStyle='#ddcc88';
+    miniCtx.beginPath(); miniCtx.arc(p.x,p.y,3,0,Math.PI*2); miniCtx.fill();
+  });
+  // Paper airplanes (in-flight)
+  paperPlanes.forEach(pp=>{
+    const p=toMini(pp.mesh.position.x, pp.mesh.position.z);
+    miniCtx.fillStyle='#88ddee';
+    miniCtx.beginPath(); miniCtx.arc(p.x,p.y,2,0,Math.PI*2); miniCtx.fill();
+  });
   // Teachers
   teachers.forEach(t=>{
     const p=toMini(t.group.position.x,t.group.position.z);
-    const col=t.alerted?'#ff2222':t.type.id==='rivera'?'#cc55cc':t.type.gender==='male'?'#4477cc':'#cc4488';
+    const col = t.alerted ? '#ff2222' :
+                t.type.id==='rivera'  ? '#cc55cc' :
+                t.type.id==='jenkins' ? '#88ff88' :
+                t.type.gender==='male'? '#4477cc' : '#cc4488';
     miniCtx.fillStyle=col; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,4,0,Math.PI*2); miniCtx.fill();
   });
   // Player
@@ -1058,6 +2054,12 @@ function showClosetCutscene(type,onFinish) {
 // ─── GAME OVER ────────────────────────────────────────────────────────────────
 function triggerGameOver(name){
   caught=true;gameRunning=false;inEncounter=false;
+  audio.caught();
+  audio.setHeartbeat(0); audio.setChaseIntensity(0);
+  // Red flash
+  const flash = document.getElementById('flash-overlay');
+  flash.classList.add('flash');
+  setTimeout(()=>flash.classList.remove('flash'), 400);
   document.getElementById('go-msg').textContent=`${name} caught you. Better luck next time!`;
   document.getElementById('game-over').style.display='flex';
   document.exitPointerLock();
@@ -1068,62 +2070,107 @@ function updateTeachers(){
   if(encounterCooldown>0) encounterCooldown--;
   if(inEncounter) return;
   const px=playerGroup.position.x, pz=playerGroup.position.z;
-  const sneaking=keys['KeyC'];
   teachers.forEach(t=>{
-    if(t.stunTimer>0){t.stunTimer--;return;}
-    // While player holds a book, teachers patrol normally — alert states frozen, no detection
+    if(t.stunTimer>0){ t.stunTimer--; animateTeacherLimbs(t,false); return; }
+    const tp=t.group.position;
+    // Holding book: teachers patrol normally; ignore detection
     if(holdingBook){
-      t.group.userData.coneMat.color.setHex(0xffff00); t.group.userData.coneMat.opacity=0.18;
-      const tp2=t.group.position, tgt2=t.patrol[t.patrolIdx];
-      const tdx2=tgt2.x-tp2.x, tdz2=tgt2.z-tp2.z, td2=Math.sqrt(tdx2*tdx2+tdz2*tdz2);
-      if(td2<0.3) t.patrolIdx=(t.patrolIdx+1)%t.patrol.length;
-      else{ moveEntity(tp2,(tdx2/td2)*t.type.patrolSpeed,(tdz2/td2)*t.type.patrolSpeed,0.5); t.group.rotation.y=Math.atan2(tdx2,tdz2); }
+      t.group.userData.coneMat.color.setHex(0xffff00); t.group.userData.coneMat.opacity=0.14;
+      patrolMove(t);
       return;
     }
-    const tp=t.group.position, dx=px-tp.x, dz=pz-tp.z, dist=Math.sqrt(dx*dx+dz*dz);
-    const range=sneaking?t.type.sneakRange:t.type.detectionRange;
-    if(dist<range&&!caught&&!escaped&&!inEncounter){
-      if(!t.alerted) showAlert(sneaking?`👁️ ${t.type.name} is nearby…`:`⚠️ ${t.type.name} spotted you!`);
-      t.alerted=true; t.alertTimer=140;
+    // Spot the player via line-of-sight + cone vision
+    const canSee = teacherCanSeePlayer(t);
+    if (canSee && !isHiding && !caught && !escaped && !inEncounter) {
+      if (!t.alerted) {
+        showAlert(keys['KeyC']?`👁️ ${t.type.name} sees you sneaking!`:`⚠️ ${t.type.name} spotted you!`);
+        audio.alertSting();
+      }
+      t.alerted = true;
+      t.alertTimer = 200;
+      t.investigating = 0;
+      t.investigateX = px; t.investigateZ = pz;
     }
-    if(t.alerted){
-      t.alertTimer--; if(t.alertTimer<=0) t.alerted=false;
-      // Red cone while chasing
-      t.group.userData.coneMat.color.setHex(0xff2200);
-      t.group.userData.coneMat.opacity=0.32;
-      t.group.rotation.y=Math.atan2(dx,dz);
-      if(dist<=CATCH_RANGE){
-        // Already inside catch range — never move INTO the player
-        if(!caught&&!escaped&&!inEncounter&&encounterCooldown<=0){
-          triggerEncounter(t);
-        } else if(encounterCooldown>0){
-          // Cooldown active: back teacher off so they don't clip the player mesh
-          moveEntity(tp,-(dx/(dist||1))*t.type.chaseSpeed*2,-(dz/(dist||1))*t.type.chaseSpeed*2,0.5);
+    if (t.alerted) {
+      t.alertTimer--;
+      if (t.alertTimer <= 0) {
+        t.alerted = false;
+        // Drop into investigating mode briefly when losing target
+        if (canSee || (Math.abs(px-tp.x)+Math.abs(pz-tp.z)<6)) {
+          t.investigating = 180;
+          t.investigateX = px; t.investigateZ = pz;
         }
-      } else {
-        // Outside catch range — chase normally
-        moveEntity(tp,(dx/(dist||1))*t.type.chaseSpeed,(dz/(dist||1))*t.type.chaseSpeed,0.5);
-        // Re-check with updated position so encounter fires this frame, not next
-        const nx=px-tp.x, nz=pz-tp.z;
-        if(Math.sqrt(nx*nx+nz*nz)<CATCH_RANGE&&!caught&&!escaped&&!inEncounter&&encounterCooldown<=0)
+      }
+      t.group.userData.coneMat.color.setHex(0xff2200);
+      t.group.userData.coneMat.opacity = 0.32;
+      // Target — last known position when not visible
+      const tx = canSee ? px : (t.investigating>0 ? t.investigateX : px);
+      const tz = canSee ? pz : (t.investigating>0 ? t.investigateZ : pz);
+      const dx = tx - tp.x, dz = tz - tp.z;
+      const dist = Math.sqrt(dx*dx + dz*dz);
+      t.group.rotation.y = Math.atan2(dx, dz);
+      const realDist = Math.sqrt((px-tp.x)*(px-tp.x) + (pz-tp.z)*(pz-tp.z));
+      if (realDist <= CATCH_RANGE && canSee) {
+        if (!caught && !escaped && !inEncounter && encounterCooldown<=0) {
           triggerEncounter(t);
+        } else if (encounterCooldown>0) {
+          moveEntity(tp, -(dx/(dist||1))*t.type.chaseSpeed*2, -(dz/(dist||1))*t.type.chaseSpeed*2, 0.5);
+        }
+      } else if (dist > 0.4) {
+        moveEntity(tp, (dx/dist)*t.type.chaseSpeed, (dz/dist)*t.type.chaseSpeed, 0.5);
+        const nrx = px - tp.x, nrz = pz - tp.z;
+        if (Math.sqrt(nrx*nrx + nrz*nrz) < CATCH_RANGE && canSee &&
+            !caught && !escaped && !inEncounter && encounterCooldown<=0) triggerEncounter(t);
       }
-      // Force-open closed doors after ~1.5 s of being blocked
+      // Force-open doors when stuck
       let nearClosedDoor=null;
-      for(const d of gameDoors){
-        if(!d.open){ const ddx=tp.x-d.hx,ddz=tp.z-d.hz; if(Math.sqrt(ddx*ddx+ddz*ddz)<3.5){nearClosedDoor=d;break;} }
+      for (const d of gameDoors) {
+        if (!d.open) {
+          const ddx = tp.x-d.hx, ddz = tp.z-d.hz;
+          if (Math.sqrt(ddx*ddx+ddz*ddz) < 3.5) { nearClosedDoor = d; break; }
+        }
       }
-      if(nearClosedDoor){ t.doorBlockTimer++; if(t.doorBlockTimer>90){openDoor(nearClosedDoor);t.doorBlockTimer=0;} }
+      if (nearClosedDoor) { t.doorBlockTimer++; if (t.doorBlockTimer>90) { openDoor(nearClosedDoor); t.doorBlockTimer=0; } }
       else t.doorBlockTimer=0;
+      animateTeacherLimbs(t, dist>0.4);
+    } else if (t.investigating > 0) {
+      // INVESTIGATING — move to last heard/seen point
+      t.investigating--;
+      t.group.userData.coneMat.color.setHex(0xffaa22);
+      t.group.userData.coneMat.opacity = 0.24;
+      const dx = t.investigateX - tp.x, dz = t.investigateZ - tp.z;
+      const dist = Math.sqrt(dx*dx + dz*dz);
+      if (dist > 0.6) {
+        moveEntity(tp, (dx/dist)*t.type.patrolSpeed*1.25, (dz/dist)*t.type.patrolSpeed*1.25, 0.5);
+        t.group.rotation.y = Math.atan2(dx, dz);
+        animateTeacherLimbs(t, true);
+      } else {
+        // Look around at investigation point
+        t.group.rotation.y += animDt * 1.4;
+        animateTeacherLimbs(t, false);
+      }
     } else {
-      // Reset cone to yellow while patrolling
+      // PATROLLING
       t.group.userData.coneMat.color.setHex(0xffff00);
-      t.group.userData.coneMat.opacity=0.18;
-      const tgt=t.patrol[t.patrolIdx], tdx=tgt.x-tp.x, tdz=tgt.z-tp.z, td=Math.sqrt(tdx*tdx+tdz*tdz);
-      if(td<0.3) t.patrolIdx=(t.patrolIdx+1)%t.patrol.length;
-      else { moveEntity(tp,(tdx/td)*t.type.patrolSpeed,(tdz/td)*t.type.patrolSpeed,0.5); t.group.rotation.y=Math.atan2(tdx,tdz); }
+      t.group.userData.coneMat.opacity = 0.14;
+      patrolMove(t);
     }
   });
+}
+
+function patrolMove(t) {
+  const tp = t.group.position;
+  const tgt = t.patrol[t.patrolIdx];
+  const dx = tgt.x - tp.x, dz = tgt.z - tp.z;
+  const d = Math.sqrt(dx*dx + dz*dz);
+  if (d < 0.3) {
+    t.patrolIdx = (t.patrolIdx+1) % t.patrol.length;
+    animateTeacherLimbs(t, false);
+  } else {
+    moveEntity(tp, (dx/d)*t.type.patrolSpeed, (dz/d)*t.type.patrolSpeed, 0.5);
+    t.group.rotation.y = Math.atan2(dx, dz);
+    animateTeacherLimbs(t, true);
+  }
 }
 
 // ─── KEYS UPDATE ─────────────────────────────────────────────────────────────
@@ -1139,10 +2186,12 @@ function updateKeys(){
     // Collect when within 1 unit
     if(dist<1.0){
       km.userData.collected=true; km.visible=false; keysCollected++;
+      audio.keyChime();
       updateHUD(); showAlert(`🔑 Key collected! (${keysCollected}/${totalKeys})`);
       if(keysCollected>=totalKeys){
         window._exitDoor.material=mats.exitDoor;
         showAlert('✅ All keys! Head SOUTH through the exit gap!',3500);
+        audio.escape();
       }
     }
   });
@@ -1153,8 +2202,25 @@ function checkExit(){
   // Player walks through the physical gap in the south wall
   if(Math.abs(playerGroup.position.x)<EXIT_X && playerGroup.position.z>EXIT_Z){
     escaped=true; gameRunning=false;
+    audio.escape();
     const secs=Math.round((Date.now()-startTime-pausedDuration)/1000);
-    document.getElementById('win-msg').textContent=`You snuck out in ${secs} seconds!`;
+    const mins=Math.floor(secs/60);
+    const ss=(secs%60).toString().padStart(2,'0');
+    // Score calculation
+    const timeBonus    = Math.max(0, 1500 - secs*5);
+    const keyPoints    = keysCollected * 200;
+    const notePoints   = notesRead * 250;
+    const stealthBonus = Math.max(0, 600 - timesSpotted*100);
+    const total = timeBonus + keyPoints + notePoints + stealthBonus;
+    document.getElementById('win-msg').textContent = secs<120
+      ? `You bolted out in ${mins}:${ss} — wow!`
+      : `You snuck out in ${mins}:${ss}.`;
+    document.getElementById('sc-time').textContent    = `${mins}:${ss}  (+${timeBonus})`;
+    document.getElementById('sc-keys').textContent    = `${keysCollected} / ${totalKeys}  (+${keyPoints})`;
+    document.getElementById('sc-notes').textContent   = `${notesRead} / ${NOTE_LIBRARY.length}  (+${notePoints})`;
+    document.getElementById('sc-spotted').textContent = `${timesSpotted}`;
+    document.getElementById('sc-stealth').textContent = `+${stealthBonus}`;
+    document.getElementById('sc-total').textContent   = `${total}`;
     setTimeout(()=>{ document.getElementById('win-screen').style.display='flex'; document.exitPointerLock(); },300);
   }
 }
@@ -1177,7 +2243,26 @@ function updateStaminaBar(){
 
 // ─── PLAYER UPDATE ────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(inEncounter||settingsOpen||mapOpen)return;
+  if(inEncounter||settingsOpen||mapOpen||activeNote)return;
+
+  // If hiding, player can't move — but still update camera so they can look
+  if (isHiding) {
+    // Camera placed slightly behind locker peep view
+    const l = hidingLocker;
+    if (firstPerson) {
+      camera.position.set(l.x, 1.5, l.z);
+      camera.lookAt(
+        l.x + Math.sin(camYaw)*10,
+        1.5 + Math.sin(camPitch)*10,
+        l.z + Math.cos(camYaw)*10
+      );
+    } else {
+      camera.position.set(l.x - Math.sin(camYaw)*1.0, 1.5, l.z - Math.cos(camYaw)*1.0);
+      camera.lookAt(l.x, 1.4, l.z);
+    }
+    return;
+  }
+
   const sneaking  = keys['KeyC'];
   const wantSprint= (keys['ShiftLeft']||keys['ShiftRight']);
 
@@ -1220,16 +2305,25 @@ function updatePlayer(){
   if(sprinting) speed=SPRINT_SPEED;
   if(playerRunBoost>0){speed=PLAYER_SPEED*1.6;playerRunBoost--;}
 
+  // Crouching lowers visible player a bit
+  playerGroup.scale.y = sneaking ? 0.78 : 1.0;
+
   const len=Math.sqrt(mx*mx+mz*mz);
   if(len>0){
     mx=(mx/len)*speed; mz=(mz/len)*speed;
     moveEntity(playerGroup.position,mx,mz,0.45);
-    // When backpedaling (S, no W) keep the character facing the camera's forward direction
-    // so the body doesn't flip 180° and fight with the camera.
+    // When backpedaling keep facing forward
     const backpedalOnly=(keys['KeyS']||keys['ArrowDown'])&&!(keys['KeyW']||keys['ArrowUp']);
     if(!backpedalOnly) playerGroup.rotation.y=Math.atan2(mx,mz);
-    body.position.y=0.6+Math.sin(Date.now()*0.015)*(sneaking?0.02:0.04);
-    phead.position.y=1.45+Math.sin(Date.now()*0.015)*(sneaking?0.02:0.04);
+    // Footstep audio
+    const footMode = sneaking ? 'sneak' : sprinting ? 'sprint' : 'walk';
+    audio.footstep(footMode);
+    // Sprint = noise emission (teachers hear through walls)
+    if (sprinting) {
+      emitSoundPulse(playerGroup.position.x, playerGroup.position.z, 9, 'sprint');
+    } else if (playerRunBoost>0) {
+      emitSoundPulse(playerGroup.position.x, playerGroup.position.z, 12, 'run');
+    }
     // Lazy camera follow — only activates when a wall is detected AHEAD and player is
     // moving purely forward (no S, no strafing, no sneaking).
     const forwardOnly=(keys['KeyW']||keys['ArrowUp'])&&!keys['KeyS']&&!keys['ArrowDown']&&!keys['KeyA']&&!keys['KeyD']&&!keys['ArrowLeft']&&!keys['ArrowRight']&&!sneaking;
@@ -1246,6 +2340,10 @@ function updatePlayer(){
       }
     }
   }
+
+  // Limb swing — speed factor scales with movement style
+  const speedFactor = sprinting ? 1.6 : sneaking ? 0.6 : 1.0;
+  animatePlayerLimbs(len>0, speedFactor);
 
   // Camera
   if(firstPerson){
@@ -1297,15 +2395,16 @@ function updateStatus(){
   const mins=Math.floor(totalSec/60);
   const secs=(totalSec%60).toString().padStart(2,'0');
   timerDisplay.textContent=`⏱ ${mins}:${secs}`;
-  if(settingsOpen)           statusBar.innerHTML='⚙️ <b>Settings open</b> — press Enter to close';
+  if(isHiding)               statusBar.innerHTML='🚪 <b>Hidden in locker</b> — teachers can\'t see you &nbsp;|&nbsp; press F to step out';
+  else if(settingsOpen)      statusBar.innerHTML='⚙️ <b>Settings open</b> — press Enter to close';
   else if(mapOpen)           statusBar.innerHTML='🗺️ <b>Map open</b> — press M to close';
   else if(holdingBook)       statusBar.innerHTML=`📖 <b>Reading pose</b> — teachers ignore you &nbsp;|&nbsp; ${Math.ceil(bookTimer)}s left &nbsp;|&nbsp; hold E to put down`;
   else if(bookCooldown>0)    statusBar.innerHTML=`📖 Book cooldown — ${Math.ceil(bookCooldown)}s until next pickup`;
   else if(playerRunBoost>0)  statusBar.innerHTML='🏃 <b>Running!</b> Nearby teachers are on alert!';
-  else if(sprinting)         statusBar.innerHTML='⚡ <b>Sprinting!</b> — teachers detect you easier';
-  else if(sneaking)          statusBar.innerHTML='🤫 <b>Sneaking</b> — reduced detection range';
+  else if(sprinting)         statusBar.innerHTML='⚡ <b>Sprinting!</b> — LOUD! teachers can hear you';
+  else if(sneaking)          statusBar.innerHTML='🤫 <b>Sneaking</b> — silent and harder to spot';
   else if(keysCollected>=totalKeys) statusBar.innerHTML='✅ All keys! Head <b>SOUTH</b> through the exit gap!';
-  else statusBar.innerHTML='Collect all keys — <b>C</b>=crouch &nbsp; <b>Shift</b>=sprint &nbsp; <b>E</b>=door &nbsp; <b>M</b>=map &nbsp; <b>Enter</b>=settings';
+  else statusBar.innerHTML='<b>C</b>=crouch &nbsp; <b>Shift</b>=sprint &nbsp; <b>E</b>=door/book &nbsp; <b>F</b>=hide/note &nbsp; <b>G</b>=throw paper &nbsp; <b>M</b>=map';
 }
 
 // ─── DOORS ────────────────────────────────────────────────────────────────────
@@ -1367,19 +2466,58 @@ function openDoor(door){
   door.targetZ=door.openZ;
   const idx=walls.indexOf(door.wallEntry);
   if(idx!==-1) walls.splice(idx,1);
+  audio.doorMove();
 }
 function closeDoor(door){
   door.open=false;
   door.targetZ=door.closedZ;
   if(!walls.includes(door.wallEntry)) walls.push(door.wallEntry);
+  audio.doorMove(); setTimeout(()=>audio.doorThud(), 280);
 }
 
 let _prevKeyE=false; // track E-press edge so book pickup/drop fires once per press
 function checkDoorInteraction(){
-  if(inEncounter||settingsOpen||mapOpen) return;
+  if(inEncounter||settingsOpen||mapOpen||activeNote) return;
   const px=playerGroup.position.x, pz=playerGroup.position.z;
   const eJustPressed=keys['KeyE']&&!_prevKeyE;
   _prevKeyE=keys['KeyE'];
+  const fJustPressed=keys['KeyF']&&!_prevKeyF;
+  _prevKeyF=keys['KeyF'];
+  const gJustPressed=keys['KeyG']&&!_prevKeyG;
+  _prevKeyG=keys['KeyG'];
+
+  const actionPrompt = document.getElementById('action-prompt');
+  const apKey = document.getElementById('ap-key');
+  const apText = document.getElementById('ap-text');
+
+  // G — throw paper airplane
+  if (gJustPressed && !isHiding) throwPaperPlane();
+
+  // F — hide/unhide in locker OR read note
+  if (isHiding) {
+    actionPrompt.style.display='block';
+    apKey.textContent='F'; apText.textContent='Step out of locker';
+    if (fJustPressed) exitLocker();
+    return;
+  }
+
+  // Check for note nearby (highest priority interaction when not in door/shelf zone)
+  const note = nearestNote();
+  if (note && !isNearShelf()) {
+    actionPrompt.style.display='block';
+    apKey.textContent='F'; apText.textContent='Read note';
+    if (fJustPressed) { openNote(note); return; }
+  } else {
+    // Check for locker nearby
+    const locker = nearestLocker();
+    if (locker) {
+      actionPrompt.style.display='block';
+      apKey.textContent='F'; apText.textContent='Hide in locker';
+      if (fJustPressed) { enterLocker(locker); return; }
+    } else {
+      actionPrompt.style.display='none';
+    }
+  }
 
   // Find the CLOSEST door within range
   nearDoor=null;
@@ -1473,9 +2611,23 @@ function startGame(){
   gameRunning=true; startTime=Date.now();
   renderer.domElement.requestPointerLock();
   buildSchool(); spawnKeys(); spawnTeachers(); createDoors();
-  updateHUD(); animate();
+  updateHUD();
+  audio.init();
+  // Initial tutorial flash
+  showTutorial('🌅 The sun is setting… Find 5 keys, dodge the teachers, then escape SOUTH.', 5000);
+  setTimeout(()=>showTutorial('💡 Tip: Press F near a locker to HIDE. Press G to throw a paper airplane as a distraction.', 6000), 6000);
+  animate();
 }
 function restartGame(){ location.reload(); }
+
+let _tutorialTO = null;
+function showTutorial(msg, duration=4000) {
+  const el = document.getElementById('tutorial');
+  el.textContent = msg;
+  el.classList.add('active');
+  clearTimeout(_tutorialTO);
+  _tutorialTO = setTimeout(()=>el.classList.remove('active'), duration);
+}
 
 function onResize(){
   renderer.setSize(window.innerWidth,window.innerHeight);
@@ -1490,8 +2642,23 @@ function animate(){
   animDt=Math.min((_now-_lastFrame)/1000, 0.05); // cap at 50 ms to avoid spiral on tab-switch
   _lastFrame=_now;
   requestAnimationFrame(animate);
-  if(gameRunning){ updatePlayer();updateTeachers();updateKeys();checkExit();updateStatus();drawMinimap();checkDoorInteraction();updateDoors(); }
-  if(mapOpen) drawBigMap(); // redraw every frame so teacher dots move in real time
+  if(gameRunning){
+    updatePlayer();
+    updateTeachers();
+    updateKeys();
+    updateNotes();
+    updatePaperPlanes();
+    updateDayNight(animDt);
+    updateFlickerLights(animDt);
+    updateDustParticles();
+    updateDetectionMeter();
+    checkExit();
+    updateStatus();
+    drawMinimap();
+    checkDoorInteraction();
+    updateDoors();
+  }
+  if(mapOpen) drawBigMap();
   renderer.render(scene,camera);
 }
 </script>

@@ -31,6 +31,12 @@
   }
   #clock-display.late  { border-color:#ff6644; color:#ff8866; }
   #clock-display.midnight { border-color:#ff2200; color:#ff5555; animation:clockPulse 1.5s ease-in-out infinite; }
+  #floor-badge {
+    background:rgba(0,0,0,0.7); border:2px solid #88ddaa; border-radius:8px;
+    padding:6px 12px; color:#88ddaa; font-size:13px; font-weight:bold;
+    letter-spacing:1px; text-align:center;
+  }
+  #floor-badge.floor2 { border-color:#aa88dd; color:#bba0ee; }
   @keyframes clockPulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
   #clock-icon { font-size:18px; display:inline-block; }
   #clock-right { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
@@ -280,6 +286,7 @@
     <div id="clock-right">
       <div id="clock-display"><span id="clock-icon">🕖</span><span id="clock-time">7:00 PM</span></div>
       <div id="timer-display">⏱ 0:00</div>
+      <div id="floor-badge">🏫 FLOOR 1</div>
     </div>
   </div>
 </div>
@@ -417,13 +424,15 @@
     When caught: <span>Run · Talk · Flirt · Shove</span>
   </div>
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#4477cc"></div> Male teacher</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#cc4488"></div> Female teacher</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#c060c0"></div> Ms. Rivera</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#88ff88"></div> Mr. Jenkins (Janitor)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4477cc"></div> Male teacher (F1)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#cc4488"></div> Female teacher (F1)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#88ff88"></div> Mr. Jenkins — Janitor</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#222222"></div> Principal Walker (F2)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff8800"></div> Coach Reyes (F2)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#aa44dd"></div> Dr. Vex (F2)</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ffd700"></div> Key</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ddcc88"></div> Note</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#aaccdd"></div> Locker</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ddcc66"></div> Stairs</div>
     <div class="legend-item"><div class="legend-dot" style="background:#44ff44"></div> Exit</div>
   </div>
   <button id="start-btn" onclick="startGame()">Start Game</button>
@@ -677,6 +686,31 @@ const TEACHER_TYPES = [
     talkFail:'Mr. Jenkins shakes his head. "Story don\'t add up. Office it is."',
     flirtWin:'Mr. Jenkins laughs heartily. "Aw, get outta here ya little goofball. South door."',
     flirtFail:'Mr. Jenkins frowns. "Hey now. That ain\'t how we talk to staff. Office."' },
+  // ── FLOOR 2 TEACHERS ───────────────────────────────────────────────────────
+  { id:'walker',   name:'Principal Walker', gender:'male', personality:'strict', bodyColor:0x111122, headColor:0xffcc88, floor:2,
+    patrolSpeed:0.045, chaseSpeed:0.078, detectionRange:8.5, sneakRange:5.0,
+    talkChance:0.12, flirtChance:0.03,
+    quote:'You are TRESPASSING in my school after hours.',
+    talkWin:'Principal Walker grits his teeth. "ONCE. This happens ONCE. Now LEAVE."',
+    talkFail:'Principal Walker shakes his head. "Suspension. Effective immediately."',
+    flirtWin:'Principal Walker stares stone-faced. "…Get out of my sight."',
+    flirtFail:'Principal Walker calls into his radio. "Code red. Student in building."' },
+  { id:'reyes',    name:'Coach Reyes',     gender:'female', personality:'fast', bodyColor:0xcc4422, headColor:0xffcc88, floor:2,
+    patrolSpeed:0.050, chaseSpeed:0.085, detectionRange:7.0, sneakRange:4.0,
+    talkChance:0.45, flirtChance:0.30,
+    quote:'You\'re fast, but not fast enough! STOP!',
+    talkWin:'Coach Reyes wipes her brow. "Alright, alright. Hit the showers — I mean, hit the road."',
+    talkFail:'Coach Reyes blows her whistle. "Drop and give me twenty. Then we go to the office."',
+    flirtWin:'Coach Reyes snorts. "Save it for the prom, kid. Get going."',
+    flirtFail:'Coach Reyes glares. "That\'s a 5K penalty. Office. NOW."' },
+  { id:'vex',      name:'Dr. Vex',         gender:'female', personality:'creepy', bodyColor:0x2a2a2a, headColor:0xffe0d0, floor:2,
+    patrolSpeed:0.024, chaseSpeed:0.062, detectionRange:9.0, sneakRange:6.5,
+    talkChance:0.20, flirtChance:0.05,
+    quote:'Curious… a specimen in my laboratory after dark.',
+    talkWin:'Dr. Vex tilts her head slowly. "Fine. Leave. Quickly, before I change my mind."',
+    talkFail:'Dr. Vex smiles too wide. "I think we\'ll have a long talk in the office."',
+    flirtWin:'Dr. Vex pauses, then laughs softly. "…How peculiar. Go on then."',
+    flirtFail:'Dr. Vex\'s smile vanishes. "How disappointing. To the office."' },
 ];
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -688,6 +722,7 @@ const STAMINA_REGEN = 1/8;    // per second — full recharge in 8 s
 const CATCH_RANGE   = 0.8;
 const CAM_DIST     = 1.95; // controls camera HEIGHT via sin(pitch)
 const CAM_BACK     = 1.5; // horizontal distance behind player
+const MIN_CAM_DIST = 0.55; // never let camera snap closer than this (avoids clipping)
 const EXIT_Z       = 16.5;    // exit trigger Z — front edge of green glow strip (player bounded to ~17.05)
 const EXIT_X       = 2.5;     // exit trigger half-width
 
@@ -821,42 +856,68 @@ function box(w,h,d,mat,x,y,z) {
 
 const walls = [];
 
+// Floor system:
+//   Floor 1 = y 0..4.5 (ground level)
+//   Floor 2 = y 4.5..9 (upstairs)
+//   'all'   = walls block at every Y (e.g. perimeter outer walls)
+function _yRangeFor(floor) {
+  if (floor === 2)     return [4.5, 9];
+  if (floor === 'all') return [0, 9];
+  return [0, 4.5]; // floor 1 default
+}
+
 // Wall with collision
-function addWall(w,h,d,x,y,z) {
+function addWall(w,h,d,x,y,z, floor=1) {
   const m = box(w,h,d,mats.wall,x,y,z);
-  walls.push({ minX:x-w/2-0.1, maxX:x+w/2+0.1, minZ:z-d/2-0.1, maxZ:z+d/2+0.1 });
+  const [minY,maxY] = _yRangeFor(floor);
+  walls.push({ minX:x-w/2-0.1, maxX:x+w/2+0.1, minZ:z-d/2-0.1, maxZ:z+d/2+0.1, minY, maxY });
   return m;
 }
 
 // Solid obstacle (furniture) — same collision, different material
-function solidBox(w,h,d,mat,x,y,z) {
+function solidBox(w,h,d,mat,x,y,z, floor=1) {
   const m = box(w,h,d,mat,x,y,z);
-  walls.push({ minX:x-w/2-0.05, maxX:x+w/2+0.05, minZ:z-d/2-0.05, maxZ:z+d/2+0.05 });
+  const [minY,maxY] = _yRangeFor(floor);
+  walls.push({ minX:x-w/2-0.05, maxX:x+w/2+0.05, minZ:z-d/2-0.05, maxZ:z+d/2+0.05, minY, maxY });
   return m;
 }
 
 // ─── COLLISION ────────────────────────────────────────────────────────────────
-function collidesWithWalls(x,z,r=0.45) {
-  for (const w of walls)
+function collidesWithWalls(x,z,r=0.45,y=null) {
+  if (y === null) y = playerGroup.position.y;
+  for (const w of walls) {
+    // Only walls on the same Y level as the entity can block them
+    if (y < (w.minY ?? 0) - 0.3) continue;
+    if (y > (w.maxY ?? 4.5) + 0.3) continue;
     if (x+r>w.minX && x-r<w.maxX && z+r>w.minZ && z-r<w.maxZ) return true;
+  }
   return false;
 }
 function moveEntity(pos,dx,dz,r=0.45) {
   const bz=17.5-r;
   // Asymmetric x-bounds: main building west + east wing east
   const nx=Math.max(-21.5+r, Math.min(43.5-r, pos.x+dx));
-  if (!collidesWithWalls(nx,pos.z,r)) pos.x=nx;
+  if (!collidesWithWalls(nx,pos.z,r,pos.y)) pos.x=nx;
   const nz=Math.max(-bz,Math.min(bz,pos.z+dz));
-  if (!collidesWithWalls(pos.x,nz,r)) pos.z=nz;
+  if (!collidesWithWalls(pos.x,nz,r,pos.y)) pos.z=nz;
 }
 
 // ─── SCHOOL ───────────────────────────────────────────────────────────────────
 function buildSchool() {
-  // Floor + ceiling
+  // Floor (no hole — solid ground)
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(44,36),mats.floor);
   fl.rotation.x=-Math.PI/2; fl.receiveShadow=true; scene.add(fl);
-  const cl=new THREE.Mesh(new THREE.PlaneGeometry(44,36),mats.ceiling);
-  cl.rotation.x=Math.PI/2; cl.position.y=4; scene.add(cl);
+  // Ceiling split around staircase hole at x=17..19.5, z=11..16
+  const ceilingTiles = [
+    {w:44, d:29, x:0,     z:-3.5},  // north of hole
+    {w:39, d:5,  x:-2.5,  z:13.5},  // west of hole
+    {w:2.5, d:5, x:20.75, z:13.5},  // east of hole
+    {w:44, d:2,  x:0,     z:17},    // south of hole
+  ];
+  ceilingTiles.forEach(t=>{
+    const cl = new THREE.Mesh(new THREE.PlaneGeometry(t.w, t.d), mats.ceiling);
+    cl.rotation.x = Math.PI/2; cl.position.set(t.x, 4, t.z); scene.add(cl);
+  });
 
   // Outer walls — main building
   addWall(44,4,0.5,  0,2,-18);          // north
@@ -940,6 +1001,10 @@ function buildSchool() {
     if (flick) flickerLights.push({light:pl, baseIntensity:0.85, nextFlick:Math.random()*7+3, flickering:false, flickEnd:0});
   });
 
+  // Build the upstairs section + connecting staircase before extras
+  buildFloor2();
+  buildStairs();
+
   // Add lockers, notes, dust particles
   buildLockers();
   spawnNotes();
@@ -964,6 +1029,235 @@ function furnishOffice(cx,cz) {
   solidBox(3,0.8,1.5,mats.desk,cx,0.4,cz+zSign*(-3));
   box(0.4,3,4,new THREE.MeshLambertMaterial({color:0x5a3010}),cx+4,1.5,cz); // bookshelf
   box(1,0.8,1,mats.chair,cx,0.4,cz+zSign*(-1.5));
+}
+
+// ─── FLOOR 2 GEOMETRY ────────────────────────────────────────────────────────
+// The second floor lives directly above the main building (x=-22..22, z=-18..18)
+// at y=5..9. Stairs at (x=18, z=14) connect the two levels.
+const FLOOR2_Y = 5;             // baseline y for upstairs
+const STAIR_X_MIN = 17, STAIR_X_MAX = 19.5;
+const STAIR_Z_MIN = 11, STAIR_Z_MAX = 16;
+
+function buildFloor2() {
+  // Floor 2 floor surface (split around stair hole so you can fall through it)
+  const fmat = mats.floor;
+  // We tile multiple planes around the stair hole (x=17..19.5, z=11..16)
+  const tiles = [
+    // North half (covers z=-18..11, full width)
+    {w:44, d:29, x:0, z:(-18+11)/2},
+    // South west of stairs (x=-22..17, z=11..18)
+    {w:39, d:7, x:(-22+17)/2, z:(11+18)/2},
+    // South east of stairs (x=19.5..22, z=11..18)
+    {w:2.5, d:7, x:(19.5+22)/2, z:(11+18)/2},
+    // North of stair hole between hole and edges already covered above
+  ];
+  // Floor-2 floor needs to be visible from below too (player on floor 1 looking up)
+  const f2FloorMat = new THREE.MeshLambertMaterial({color:0x6a5a44, side:THREE.DoubleSide});
+  tiles.forEach(t=>{
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(t.w, t.d), f2FloorMat);
+    fl.rotation.x = -Math.PI/2; fl.position.set(t.x, FLOOR2_Y, t.z); fl.receiveShadow=true;
+    scene.add(fl);
+  });
+  // Floor 2 ceiling
+  const cl = new THREE.Mesh(new THREE.PlaneGeometry(44,36), mats.ceiling);
+  cl.rotation.x = Math.PI/2; cl.position.set(0, FLOOR2_Y+4, 0); scene.add(cl);
+
+  // Floor 2 OUTER walls (mirror main building perimeter)
+  addWall(44, 4, 0.5, 0, FLOOR2_Y+2, -18, 2);          // north
+  addWall(0.5, 4, 36, -22, FLOOR2_Y+2, 0, 2);          // west
+  addWall(0.5, 4, 36, 22, FLOOR2_Y+2, 0, 2);           // east
+  addWall(44, 4, 0.5, 0, FLOOR2_Y+2, 18, 2);           // south
+
+  // Interior dividers — different layout than floor 1 (themed rooms)
+  // Central east-west hallway between z=-6 and z=6, but doors at different spots.
+  addWall(17, 4, 0.5, -11.5, FLOOR2_Y+2, -6, 2);
+  addWall(17, 4, 0.5,  11.5, FLOOR2_Y+2, -6, 2);
+  addWall(17, 4, 0.5, -11.5, FLOOR2_Y+2,  6, 2);
+  addWall(11, 4, 0.5,  8.5,  FLOOR2_Y+2,  6, 2);       // south corridor wall stops short of stairs
+
+  // Vertical dividers between north rooms
+  addWall(0.5, 4, 8.0, -3, FLOOR2_Y+2, -14, 2);
+  addWall(0.5, 4, 8.0,  3, FLOOR2_Y+2, -14, 2);
+  // Vertical dividers between south rooms
+  addWall(0.5, 4, 8.0, -3, FLOOR2_Y+2,  14, 2);
+  addWall(0.5, 4, 8.0,  3, FLOOR2_Y+2,  14, 2);
+
+  // Ceiling lights for floor 2 — cooler/sterile tone
+  [[-10,-10,false],[0,-10,true],[10,-10,false],
+   [-10,0,false],[0,0,true],[10,0,false],
+   [-10,10,true],[0,10,false],[10,10,false]].forEach(([x,z,flick])=>{
+    const pl = new THREE.PointLight(0xddeeff, 0.75, 14);
+    pl.position.set(x, FLOOR2_Y+3.9, z); scene.add(pl);
+    box(0.4, 0.1, 0.4, mats.ceiling, x, FLOOR2_Y+3.9, z);
+    if (flick) flickerLights.push({light:pl, baseIntensity:0.75, nextFlick:Math.random()*8+3, flickering:false, flickEnd:0});
+  });
+
+  // Windows along outer walls
+  for (let x=-18;x<=18;x+=5) box(2.5,1.5,0.1,mats.window,x,FLOOR2_Y+2.5,-17.95);
+  for (let z=-14;z<=14;z+=5) box(0.1,1.5,2.5,mats.window,21.95,FLOOR2_Y+2.5,z);
+
+  // Furnish rooms
+  furnishComputerLab(-11, -12);   // NW
+  furnishScienceLab(11, -12);     // NE
+  furnishTeacherLounge(-11, 12);  // SW
+  furnishRealOffice(11, 12);      // SE
+
+  // Lockers in floor 2 hallway (fewer + simpler)
+  for (let x=-16; x<=16; x+=2.5) {
+    if (Math.abs(x) < 4) continue;
+    if (Math.abs(x+12)<2 || Math.abs(x-12)<2) continue;
+    makeLocker(x, -5.6, +1, 2);
+    makeLocker(x,  5.6, -1, 2);
+  }
+}
+
+// ─── STAIRCASE ────────────────────────────────────────────────────────────────
+// Visible stairs at (x≈18, z≈13.5). Walking north (decreasing z) lifts player Y.
+function buildStairs() {
+  const stepMat = new THREE.MeshLambertMaterial({color:0x8b6914});
+  const railMat = new THREE.MeshLambertMaterial({color:0x444444});
+  const STEPS = 10;
+  const startZ = STAIR_Z_MAX - 0.3;
+  const endZ   = STAIR_Z_MIN + 0.4;
+  const stepZSpan = (startZ - endZ) / STEPS;
+  for (let i=0; i<STEPS; i++) {
+    const y = (i+0.5) * (FLOOR2_Y / STEPS);
+    const z = startZ - i * stepZSpan;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.18, stepZSpan+0.05), stepMat);
+    step.position.set(18.2, y, z);
+    step.castShadow = true; step.receiveShadow = true;
+    scene.add(step);
+  }
+  // Landing on floor 2
+  const landing = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 1.5), stepMat);
+  landing.position.set(18.2, FLOOR2_Y-0.1, STAIR_Z_MIN-0.6);
+  scene.add(landing);
+  // Side rails
+  for (const xs of [17.0, 19.4]) {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(0.08, FLOOR2_Y+0.4, 5.5), railMat);
+    r.position.set(xs, FLOOR2_Y/2, (STAIR_Z_MIN+STAIR_Z_MAX)/2);
+    scene.add(r);
+  }
+  // Stair sign
+  box(2, 0.4, 0.1, new THREE.MeshLambertMaterial({color:0x222222, emissive:0x664400}), 18.2, FLOOR2_Y+1.0, STAIR_Z_MAX);
+  // Side wall segments framing the stairs so player can't fall off the sides
+  addWall(0.2, FLOOR2_Y, (STAIR_Z_MAX-STAIR_Z_MIN), 16.9, FLOOR2_Y/2, (STAIR_Z_MIN+STAIR_Z_MAX)/2, 'all');
+  addWall(0.2, FLOOR2_Y, (STAIR_Z_MAX-STAIR_Z_MIN), 19.5, FLOOR2_Y/2, (STAIR_Z_MIN+STAIR_Z_MAX)/2, 'all');
+}
+
+// True if the entity is currently standing inside the stair ramp footprint.
+function inStairZone(x, z) {
+  return x > STAIR_X_MIN && x < STAIR_X_MAX
+      && z > STAIR_Z_MIN && z < STAIR_Z_MAX;
+}
+// Returns the Y the player should be at given their Z on the ramp.
+function stairYForZ(z) {
+  const t = Math.max(0, Math.min(1, (STAIR_Z_MAX - z) / (STAIR_Z_MAX - STAIR_Z_MIN)));
+  return t * FLOOR2_Y;
+}
+
+// ─── FLOOR 2 ROOM FURNISHINGS ────────────────────────────────────────────────
+function furnishComputerLab(cx, cz) {
+  const Y = FLOOR2_Y;
+  const zSign = cz<0?1:-1;
+  // Row of computer desks with monitors
+  for (let col=-1; col<=1; col++) {
+    solidBox(1.4, 0.75, 0.8, mats.desk, cx+col*2.5, Y+0.4, cz+zSign*(-2.5), 2);
+    const monitor = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 0.5, 0.15),
+      new THREE.MeshLambertMaterial({color:0x111122, emissive:0x224488})
+    );
+    monitor.position.set(cx+col*2.5, Y+1.05, cz+zSign*(-2.7));
+    scene.add(monitor);
+    // Chair
+    box(0.7, 0.6, 0.7, mats.chair, cx+col*2.5, Y+0.3, cz+zSign*(-1.5), 2);
+  }
+  // Server rack against far wall
+  const server = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 2.0, 0.6),
+    new THREE.MeshLambertMaterial({color:0x222222, emissive:0x004422})
+  );
+  server.position.set(cx+3.5, Y+1.0, cz+zSign*(-5));
+  scene.add(server);
+  // Pulsing LED on server
+  const led = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08,8,8),
+    new THREE.MeshBasicMaterial({color:0x33ff66})
+  );
+  led.position.set(cx+3.5, Y+1.6, cz+zSign*(-4.7));
+  scene.add(led);
+}
+
+function furnishScienceLab(cx, cz) {
+  const Y = FLOOR2_Y;
+  const zSign = cz<0?1:-1;
+  // Long lab benches
+  solidBox(5.0, 0.85, 1.0, mats.desk, cx, Y+0.43, cz+zSign*(-2.5), 2);
+  solidBox(5.0, 0.85, 1.0, mats.desk, cx, Y+0.43, cz+zSign*(-0.5), 2);
+  // Beakers and weird glassware (visual only, non-collidable)
+  const glassMat = new THREE.MeshLambertMaterial({color:0xaaffee, transparent:true, opacity:0.55});
+  const liquidMat = new THREE.MeshLambertMaterial({color:0x44ffaa, emissive:0x00aa44});
+  for (let i=0; i<5; i++) {
+    const beaker = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.10,0.30,12), glassMat);
+    beaker.position.set(cx-2+i*1.0, Y+1.00, cz+zSign*(-2.5));
+    scene.add(beaker);
+    if (i % 2 === 0) {
+      const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.09,0.18,12), liquidMat);
+      liquid.position.set(cx-2+i*1.0, Y+0.95, cz+zSign*(-2.5));
+      scene.add(liquid);
+    }
+  }
+  // Skeleton in the corner (creepy)
+  const sk = new THREE.Group();
+  const skMat = new THREE.MeshLambertMaterial({color:0xeeeedd});
+  const skHead = new THREE.Mesh(new THREE.SphereGeometry(0.20,10,10), skMat); skHead.position.y = 1.7; sk.add(skHead);
+  const skBody = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.2), skMat); skBody.position.y = 0.9; sk.add(skBody);
+  const skArmL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), skMat); skArmL.position.set(-0.27, 0.95, 0); sk.add(skArmL);
+  const skArmR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), skMat); skArmR.position.set( 0.27, 0.95, 0); sk.add(skArmR);
+  const skLegL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), skMat); skLegL.position.set(-0.1, 0.05, 0); sk.add(skLegL);
+  const skLegR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), skMat); skLegR.position.set( 0.1, 0.05, 0); sk.add(skLegR);
+  sk.position.set(cx+4, Y, cz+zSign*(-5));
+  scene.add(sk);
+}
+
+function furnishTeacherLounge(cx, cz) {
+  const Y = FLOOR2_Y;
+  const zSign = cz<0?1:-1;
+  // Couch
+  solidBox(2.5, 0.8, 1.0, new THREE.MeshLambertMaterial({color:0x553355}), cx-2, Y+0.4, cz+zSign*(-3), 2);
+  box(2.5, 0.3, 1.0, new THREE.MeshLambertMaterial({color:0x442244}), cx-2, Y+0.95, cz+zSign*(-3.3), 2);
+  // Coffee table with mug
+  solidBox(1.5, 0.4, 0.8, mats.desk, cx-2, Y+0.2, cz+zSign*(-1.5), 2);
+  const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,0.18,12), new THREE.MeshLambertMaterial({color:0xffffff}));
+  mug.position.set(cx-2, Y+0.50, cz+zSign*(-1.4)); scene.add(mug);
+  // Snack vending machine
+  solidBox(1.0, 2.2, 0.7, new THREE.MeshLambertMaterial({color:0xcc2222, emissive:0x331111}), cx+3.5, Y+1.1, cz+zSign*(-4), 2);
+  // Fridge
+  solidBox(0.9, 1.8, 0.7, new THREE.MeshLambertMaterial({color:0xeeeeee}), cx+3.5, Y+0.9, cz+zSign*(-2), 2);
+}
+
+function furnishRealOffice(cx, cz) {
+  const Y = FLOOR2_Y;
+  const zSign = cz<0?1:-1;
+  // Large executive desk
+  solidBox(3.2, 0.85, 1.6, new THREE.MeshLambertMaterial({color:0x553311}), cx, Y+0.43, cz+zSign*(-3), 2);
+  // Leather chair
+  box(1.0, 1.2, 1.0, new THREE.MeshLambertMaterial({color:0x222222}), cx, Y+0.6, cz+zSign*(-4.2), 2);
+  // Trophy shelf along far wall
+  box(4, 0.15, 0.5, new THREE.MeshLambertMaterial({color:0x664422}), cx, Y+1.9, cz+zSign*(-5.5), 2);
+  for (let i=-1; i<=1; i++) {
+    const trophy = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.12,0.35,8),
+      new THREE.MeshLambertMaterial({color:0xffd700, emissive:0x886600}));
+    trophy.position.set(cx+i*1.0, Y+2.15, cz+zSign*(-5.5));
+    scene.add(trophy);
+  }
+  // PA microphone on desk
+  const micStand = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,8), new THREE.MeshLambertMaterial({color:0x222222}));
+  micStand.position.set(cx-1, Y+1.15, cz+zSign*(-3));
+  scene.add(micStand);
+  const micHead = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8), new THREE.MeshLambertMaterial({color:0x111111}));
+  micHead.position.set(cx-1, Y+1.45, cz+zSign*(-3));
+  scene.add(micHead);
 }
 
 function furnishLibrary() {
@@ -1016,7 +1310,8 @@ function furnishLibrary() {
 
 // ─── LOCKERS ─────────────────────────────────────────────────────────────────
 // Solid lockers placed along walls. Press F when near to climb in & hide.
-function makeLocker(x, z, facing) {
+function makeLocker(x, z, facing, floor=1) {
+  const yOffset = floor === 2 ? FLOOR2_Y : 0;
   // facing: +1 = door faces +z, -1 = door faces -z, +2 = +x, -2 = -x
   const g = new THREE.Group();
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.5), mats.lockerBody);
@@ -1043,11 +1338,15 @@ function makeLocker(x, z, facing) {
   if (Math.abs(facing) === 1) { handle.position.z = facing * 0.30; handle.position.x = 0.22; }
   else                        { handle.position.x = (facing>0?1:-1)*0.40; handle.position.z = 0.22; }
   g.add(handle);
-  g.position.set(x, 0, z);
+  g.position.set(x, yOffset, z);
   scene.add(g);
-  // Collision (slightly smaller than visual)
-  walls.push({minX:x-0.36, maxX:x+0.36, minZ:z-0.26, maxZ:z+0.26});
-  lockers.push({mesh:g, x, z, facing, doorMesh:door});
+  // Collision (slightly smaller than visual) — tag with this locker's floor
+  const [lockerMinY, lockerMaxY] = _yRangeFor(floor);
+  walls.push({
+    minX:x-0.36, maxX:x+0.36, minZ:z-0.26, maxZ:z+0.26,
+    minY:lockerMinY, maxY:lockerMaxY
+  });
+  lockers.push({mesh:g, x, z, facing, doorMesh:door, floor, y:yOffset});
 }
 
 function buildLockers() {
@@ -1081,29 +1380,45 @@ const NOTE_LIBRARY = [
     body:'7:00 PM — Final bell\n7:30 PM — Doors lock\n8:00 PM — Janitor sweeps hallways\n9:00 PM — Master lockup\n\nNo students permitted in building after 7 PM. NO EXCEPTIONS.' },
   { title:"Mike's Notebook",
     body:'I was just trying to grab my baseball cap from gym class.\n\nNow the lights are dimming, the teachers are everywhere, and the doors won\'t open.\n\nIf you\'re reading this — get out. Get out NOW.' },
+  { title:"Dr. Vex's Research Log",
+    body:'Subject 7 appeared promising at first, but the side effects were…\n\n[The rest of the page is scratched out violently. A single sentence remains in the margin:]\n\n"Do not let them onto the second floor."' },
+  { title:"Principal Walker's Memo",
+    body:'STAFF — Effective tonight, ALL student access is REVOKED after 7 PM. Anyone caught harboring or aiding a student after hours will face disciplinary action.\n\nWe finish lockup at midnight. No exceptions.\n\n— Walker' },
 ];
 
 const NOTE_SPAWN_POOL = [
-  {x:-16,z:-15}, {x:18,z:-13}, {x:-14,z:14}, {x:11,z:13},
-  {x:42,z:-12}, {x:43,z:12}, {x:-19,z:0}, {x:21,z:0},
-  {x:34,z:-12}, {x:8,z:-15}, {x:-9,z:15},
+  // Floor 1
+  {x:-16,z:-15,f:1}, {x:18,z:-13,f:1}, {x:-14,z:14,f:1}, {x:11,z:13,f:1},
+  {x:42,z:-12,f:1}, {x:43,z:12,f:1}, {x:34,z:-12,f:1},
+  // Floor 2
+  {x:-12,z:-13,f:2}, {x:11,z:-12,f:2}, {x:-12,z:14,f:2}, {x:11,z:14,f:2},
+  {x:-18,z:0,f:2}, {x:0,z:-10,f:2},
 ];
 
 function spawnNotes() {
-  const pool = [...NOTE_SPAWN_POOL];
-  for (let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  const slots = pool.slice(0, NOTE_LIBRARY.length);
-  slots.forEach((pos,i)=>{
+  // Make sure we get notes on both floors
+  const f1 = shuffle(NOTE_SPAWN_POOL.filter(p => p.f === 1));
+  const f2 = shuffle(NOTE_SPAWN_POOL.filter(p => p.f === 2));
+  const chosen = [];
+  // Take a few of each floor, then fill rest from whichever has more
+  const f2Count = Math.min(3, f2.length);
+  for (let i=0; i<f2Count; i++) chosen.push(f2.shift());
+  while (chosen.length < NOTE_LIBRARY.length && (f1.length || f2.length)) {
+    if (f1.length && (Math.random() < 0.65 || !f2.length)) chosen.push(f1.shift());
+    else if (f2.length) chosen.push(f2.shift());
+  }
+  chosen.forEach((pos,i)=>{
+    const baseY = pos.f === 2 ? FLOOR2_Y + 0.05 : 0.05;
+    const glowY = pos.f === 2 ? FLOOR2_Y + 0.6 : 0.6;
     const m = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.04,0.36), mats.note);
-    m.position.set(pos.x, 0.05, pos.z);
+    m.position.set(pos.x, baseY, pos.z);
     m.rotation.y = Math.random()*0.5 - 0.25;
     scene.add(m);
-    // Floating glow indicator above
     const glow = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8),
       new THREE.MeshBasicMaterial({color:0xffee99, transparent:true, opacity:0.7}));
-    glow.position.copy(m.position); glow.position.y = 0.6;
+    glow.position.set(pos.x, glowY, pos.z);
     scene.add(glow);
-    noteObjects.push({mesh:m, glow, x:pos.x, z:pos.z, read:false, text:NOTE_LIBRARY[i]});
+    noteObjects.push({mesh:m, glow, x:pos.x, z:pos.z, floor:pos.f||1, baseY, glowY, read:false, text:NOTE_LIBRARY[i]});
   });
 }
 
@@ -1155,39 +1470,51 @@ function updateDustParticles() {
 // Large pool of safe floor positions across the whole map.
 // Avoids furniture clusters, desks, shelves, and walls.
 const KEY_SPAWN_POOL = [
-  // Main hallway / corridor
-  {x:0,z:0},{x:0,z:-4},{x:0,z:4},{x:-1,z:2},{x:1,z:-2},
-  // Room A (NW)
-  {x:-11,z:-12},{x:-8,z:-9},{x:-15,z:-9},{x:-18,z:-13},{x:-7,z:-14},{x:-14,z:-14},{x:-9,z:-16},
-  // Room B (NE)
-  {x:11,z:-12},{x:8,z:-9},{x:15,z:-9},{x:18,z:-13},{x:7,z:-14},{x:14,z:-14},{x:9,z:-16},
-  // Room C (SW)
-  {x:-11,z:12},{x:-8,z:9},{x:-15,z:9},{x:-18,z:13},{x:-7,z:14},{x:-14,z:14},{x:-9,z:16},
-  // Room D (SE)
-  {x:11,z:12},{x:8,z:9},{x:15,z:9},{x:18,z:13},{x:7,z:14},{x:14,z:14},{x:9,z:16},
-  // Library corridor entrance
-  {x:25,z:0},{x:25,z:-5},{x:25,z:5},
-  // Library — aisle before row 1
-  {x:28,z:-10},{x:28,z:10},{x:28,z:0},
-  // Library — aisle between row 1 & row 2
-  {x:34,z:-10},{x:34,z:5},
-  // Library — aisle between row 2 & row 3
-  {x:38,z:-10},{x:38,z:9},
-  // Library — east of row 3 / far end
-  {x:42,z:-10},{x:42,z:8},{x:43,z:0},
+  // Floor 1 — main hallway / corridor
+  {x:0,z:0,f:1},{x:0,z:-4,f:1},{x:0,z:4,f:1},
+  // Floor 1 — Room A (NW)
+  {x:-11,z:-12,f:1},{x:-8,z:-9,f:1},{x:-15,z:-9,f:1},{x:-18,z:-13,f:1},{x:-9,z:-16,f:1},
+  // Floor 1 — Room B (NE)
+  {x:11,z:-12,f:1},{x:8,z:-9,f:1},{x:15,z:-9,f:1},{x:18,z:-13,f:1},{x:9,z:-16,f:1},
+  // Floor 1 — Room C (SW)
+  {x:-11,z:12,f:1},{x:-15,z:9,f:1},{x:-18,z:13,f:1},{x:-9,z:16,f:1},
+  // Floor 1 — Room D (SE)
+  {x:11,z:12,f:1},{x:15,z:9,f:1},{x:18,z:13,f:1},{x:9,z:16,f:1},
+  // Library
+  {x:28,z:-10,f:1},{x:28,z:10,f:1},{x:34,z:-10,f:1},{x:38,z:9,f:1},{x:42,z:-10,f:1},{x:43,z:0,f:1},
+  // Floor 2 — Computer Lab
+  {x:-12,z:-12,f:2},{x:-15,z:-9,f:2},{x:-9,z:-16,f:2},
+  // Floor 2 — Science Lab
+  {x:14,z:-12,f:2},{x:10,z:-15,f:2},{x:15,z:-9,f:2},
+  // Floor 2 — Teacher's Lounge
+  {x:-12,z:12,f:2},{x:-15,z:14,f:2},{x:-9,z:16,f:2},
+  // Floor 2 — Real Office
+  {x:11,z:13,f:2},{x:14,z:9,f:2},
+  // Floor 2 — hallway
+  {x:0,z:0,f:2},{x:-12,z:0,f:2},{x:12,z:0,f:2},
 ];
 const keyMeshes=[];
 let keysCollected=0;
 const totalKeys=5;
 
 function spawnKeys() {
-  // Randomly pick 5 from the pool (Fisher-Yates on a copy, then slice)
-  const pool=[...KEY_SPAWN_POOL];
-  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-  pool.slice(0,totalKeys).forEach((pos,i)=>{
+  // Guarantee at least one key on each floor for variety
+  const f1Pool = shuffle(KEY_SPAWN_POOL.filter(p => p.f === 1));
+  const f2Pool = shuffle(KEY_SPAWN_POOL.filter(p => p.f === 2));
+  const chosen = [];
+  // 1 guaranteed on floor 2, the rest mixed (favouring floor 1)
+  if (f2Pool.length) chosen.push(f2Pool.shift());
+  if (f2Pool.length) chosen.push(f2Pool.shift());
+  while (chosen.length < totalKeys && (f1Pool.length || f2Pool.length)) {
+    if (f1Pool.length && (Math.random() < 0.7 || !f2Pool.length)) chosen.push(f1Pool.shift());
+    else if (f2Pool.length) chosen.push(f2Pool.shift());
+  }
+  chosen.forEach((pos,i)=>{
     const m=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.07,8,16),mats.key.clone());
-    m.position.set(pos.x,0.8,pos.z); m.rotation.x=Math.PI/2; m.castShadow=true;
-    m.userData={collected:false,discovered:false,index:i}; scene.add(m); keyMeshes.push(m);
+    const yBase = pos.f === 2 ? FLOOR2_Y + 0.8 : 0.8;
+    m.position.set(pos.x, yBase, pos.z); m.rotation.x=Math.PI/2; m.castShadow=true;
+    m.userData={collected:false,discovered:false,index:i,floor:pos.f,baseY:yBase};
+    scene.add(m); keyMeshes.push(m);
   });
 }
 
@@ -1264,7 +1591,8 @@ function shuffle(arr) {
   return arr;
 }
 
-const PATROL_ROUTES=[
+// Floor-1 patrol routes (will be matched against floor-1 teachers).
+const PATROL_ROUTES_F1=[
   [{x:-18,z:-4},{x:-18,z:4},{x:-8,z:4},{x:-8,z:-4}],          // west hallway loop
   [{x:18,z:4},  {x:18,z:-4},{x:8,z:-4},{x:8,z:4}],            // east hallway loop
   [{x:-12,z:-4},{x:0,z:-4}, {x:12,z:-4},{x:0,z:4}],           // center sweep
@@ -1273,6 +1601,14 @@ const PATROL_ROUTES=[
   [{x:28,z:0},{x:34,z:-12},{x:43,z:-12},{x:43,z:12},{x:34,z:12}], // Library (east wing)
   [{x:-18,z:0},{x:18,z:0},{x:0,z:4},{x:0,z:-4}],              // Janitor — main hallway sweep
 ];
+// Floor-2 patrol routes (positions are in floor-2 space; y added at spawn).
+const PATROL_ROUTES_F2=[
+  [{x:-16,z:-12},{x:-6,z:-12},{x:-6,z:-3},{x:-16,z:-3}],      // Computer Lab + adjacent
+  [{x:6,z:-12},{x:16,z:-12},{x:16,z:-3},{x:6,z:-3}],          // Science Lab + adjacent
+  [{x:-15,z:0},{x:0,z:0},{x:15,z:0},{x:0,z:3}],               // Floor 2 hallway sweep (Coach Reyes)
+];
+// Back-compat alias (older code referenced PATROL_ROUTES directly)
+const PATROL_ROUTES = PATROL_ROUTES_F1;
 
 // Safe hallway spawn positions (all clear of furniture and walls)
 const SAFE_SPAWNS=[
@@ -1330,40 +1666,64 @@ function makeTeacherMesh(type) {
 }
 
 function spawnTeachers() {
-  const shuffled = shuffle([...TEACHER_TYPES]);
-  shuffled.forEach((type,i)=>{
-    if (i >= PATROL_ROUTES.length) return;
-    const route=PATROL_ROUTES[i], start=route[0];
-    const group=makeTeacherMesh(type);
-    group.position.set(start.x,0,start.z); scene.add(group);
+  // Split teacher types by floor
+  const f1Types = shuffle(TEACHER_TYPES.filter(t => !t.floor || t.floor === 1));
+  const f2Types = shuffle(TEACHER_TYPES.filter(t => t.floor === 2));
+
+  function attach(type, route, floor) {
+    const start = route[0];
+    const yBase = floor === 2 ? FLOOR2_Y : 0;
+    const group = makeTeacherMesh(type);
+    group.position.set(start.x, yBase, start.z);
+    scene.add(group);
     teachers.push({
-      type, group, patrol:route, patrolIdx:0,
+      type, group, floor,
+      patrol: route.map(p => ({ x:p.x, z:p.z })),
+      patrolIdx:0,
       alerted:false, alertTimer:0, stunTimer:0, doorBlockTimer:0,
-      investigateX:0, investigateZ:0, investigating:0, walkPhase:Math.random()*Math.PI*2
+      investigateX:0, investigateZ:0, investigating:0,
+      walkPhase: Math.random()*Math.PI*2
     });
+  }
+
+  f1Types.forEach((type, i) => {
+    if (i >= PATROL_ROUTES_F1.length) return;
+    attach(type, PATROL_ROUTES_F1[i], 1);
+  });
+  f2Types.forEach((type, i) => {
+    if (i >= PATROL_ROUTES_F2.length) return;
+    attach(type, PATROL_ROUTES_F2[i], 2);
   });
 }
 
+const SAFE_SPAWNS_F2 = [
+  {x:-15,z:-12},{x:-15,z:12},{x:15,z:-12},{x:15,z:12},
+  {x:0,z:-10},{x:0,z:10},{x:-18,z:0},{x:14,z:0},
+];
+
 function respawnTeacher(t, stayAlerted=false) {
-  const px=playerGroup.position.x, pz=playerGroup.position.z;
-  const candidates=SAFE_SPAWNS.filter(s=>{
+  const px = playerGroup.position.x, pz = playerGroup.position.z;
+  const pool0 = (t.floor === 2) ? SAFE_SPAWNS_F2 : SAFE_SPAWNS;
+  const yBase = (t.floor === 2) ? FLOOR2_Y : 0;
+  const candidates = pool0.filter(s=>{
     const dx=s.x-px, dz=s.z-pz;
-    return Math.sqrt(dx*dx+dz*dz)>=10;
+    return Math.sqrt(dx*dx+dz*dz) >= 8;
   });
-  const pool=candidates.length>0 ? candidates : SAFE_SPAWNS;
-  const spawn=pool[Math.floor(Math.random()*pool.length)];
-  t.group.position.set(spawn.x, 0, spawn.z);
-  t.alerted=stayAlerted;
-  t.alertTimer=stayAlerted?200:0;
-  t.stunTimer=0;
-  t.patrolIdx=0;
+  const pool = candidates.length>0 ? candidates : pool0;
+  const spawn = pool[Math.floor(Math.random()*pool.length)];
+  t.group.position.set(spawn.x, yBase, spawn.z);
+  t.alerted = stayAlerted;
+  t.alertTimer = stayAlerted ? 200 : 0;
+  t.stunTimer = 0;
+  t.patrolIdx = 0;
 }
 
 // ─── LINE OF SIGHT ────────────────────────────────────────────────────────────
-// Returns true if there's a clear line from (ax,az) to (bx,bz) through the
-// `walls` array. Door wall-entries are temporarily removed when open, so this
-// works automatically through open doors. Lockers also block LOS.
-function clearLineOfSight(ax, az, bx, bz) {
+// Returns true if there's a clear line from (ax,az) to (bx,bz) at the given y
+// level through the `walls` array. Door wall-entries are temporarily removed
+// when open, so this works automatically through open doors. Lockers also
+// block LOS. Walls on a different floor are ignored.
+function clearLineOfSight(ax, az, bx, bz, y=0) {
   const dx = bx-ax, dz = bz-az;
   const dist = Math.sqrt(dx*dx + dz*dz);
   if (dist < 0.5) return true;
@@ -1372,20 +1732,29 @@ function clearLineOfSight(ax, az, bx, bz) {
   for (let i=1; i<steps; i++) {
     const x = ax + ix*i, z = az + iz*i;
     for (const w of walls) {
+      if (y < (w.minY ?? 0) - 0.3) continue;
+      if (y > (w.maxY ?? 4.5) + 0.3) continue;
       if (x > w.minX+0.02 && x < w.maxX-0.02 && z > w.minZ+0.02 && z < w.maxZ-0.02) return false;
     }
   }
   return true;
 }
 
+// Returns 0 if the entity is on the ground floor, 1 if upstairs.
+function entityFloor(yPos) { return yPos >= 2.5 ? 1 : 0; }
+
 // Realistic vision: in cone of view + line of sight clear + range
 function teacherCanSeePlayer(t) {
   if (isHiding) return false;
+  // Different floors completely block vision
+  const teacherFloor = entityFloor(t.group.position.y);
+  const playerFloor  = entityFloor(playerGroup.position.y);
+  if (teacherFloor !== playerFloor) return false;
   const tx = t.group.position.x, tz = t.group.position.z;
   const px = playerGroup.position.x, pz = playerGroup.position.z;
   const dx = px - tx, dz = pz - tz;
   const dist = Math.sqrt(dx*dx + dz*dz);
-  if (dist < 1.2) return clearLineOfSight(tx, tz, px, pz); // proximity bypass
+  if (dist < 1.2) return clearLineOfSight(tx, tz, px, pz, t.group.position.y); // proximity bypass
   const range = (keys['KeyC'] ? t.type.sneakRange : t.type.detectionRange)
               * (holdingBook?0.4:1) * teacherRangeMul();
   if (dist > range) return false;
@@ -1399,12 +1768,14 @@ function teacherCanSeePlayer(t) {
   const baseFov = t.alerted ? (Math.PI*0.72) : (Math.PI*0.42);
   const fov = Math.min(Math.PI*0.95, baseFov * teacherFovMul());
   if (Math.abs(diff) > fov/2) return false;
-  return clearLineOfSight(tx, tz, px, pz);
+  return clearLineOfSight(tx, tz, px, pz, t.group.position.y);
 }
 
 // ─── SOUND EMISSION (sprint / paper / shove) ─────────────────────────────────
 function emitSoundPulse(x, z, radius, source='player') {
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
   teachers.forEach(t=>{
+    if ((t.floor||1) !== playerFloor) return;  // sound stays on its own floor
     const dx = t.group.position.x - x, dz = t.group.position.z - z;
     const d = Math.sqrt(dx*dx + dz*dz);
     if (d < radius && t.stunTimer<=0) {
@@ -1428,7 +1799,9 @@ function emitSoundPulse(x, z, radius, source='player') {
 function nearestLocker() {
   let best=null, bestD=Infinity;
   const px=playerGroup.position.x, pz=playerGroup.position.z;
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
   for (const l of lockers) {
+    if ((l.floor||1) !== playerFloor) continue;
     const dx=l.x-px, dz=l.z-pz;
     const d = Math.sqrt(dx*dx+dz*dz);
     if (d < 1.4 && d < bestD) { best=l; bestD=d; }
@@ -1439,7 +1812,7 @@ function nearestLocker() {
 function enterLocker(l) {
   isHiding = true;
   hidingLocker = l;
-  playerGroup.position.set(l.x, 0, l.z);
+  playerGroup.position.set(l.x, l.y || 0, l.z);
   playerGroup.visible = false;
   document.getElementById('hiding-overlay').classList.add('active');
   audio.lockerOpen();
@@ -1452,7 +1825,7 @@ function exitLocker() {
   const l = hidingLocker;
   const offX = Math.abs(l.facing)===2 ? Math.sign(l.facing)*1.0 : 0;
   const offZ = Math.abs(l.facing)===1 ? l.facing*1.0 : 0;
-  playerGroup.position.set(l.x + offX, 0, l.z + offZ);
+  playerGroup.position.set(l.x + offX, l.y || 0, l.z + offZ);
   isHiding = false;
   hidingLocker = null;
   playerGroup.visible = !firstPerson;
@@ -1519,8 +1892,10 @@ function updatePaperPlanes() {
 function nearestNote() {
   let best=null, bestD=Infinity;
   const px=playerGroup.position.x, pz=playerGroup.position.z;
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
   for (const n of noteObjects) {
     if (n.read) continue;
+    if ((n.floor||1) !== playerFloor) continue;   // can't grab notes on other floors
     const dx=n.x-px, dz=n.z-pz;
     const d=Math.sqrt(dx*dx+dz*dz);
     if (d<1.4 && d<bestD) { best=n; bestD=d; }
@@ -1562,7 +1937,7 @@ function updateNotes() {
   noteObjects.forEach(n=>{
     if (n.read) return;
     n.mesh.rotation.y += 0.005;
-    n.glow.position.y = 0.6 + Math.sin(Date.now()*0.003 + n.x)*0.08;
+    n.glow.position.y = n.glowY + Math.sin(Date.now()*0.003 + n.x)*0.08;
     n.glow.material.opacity = 0.5 + Math.sin(Date.now()*0.005 + n.z)*0.25;
   });
 }
@@ -1823,6 +2198,11 @@ function drawBigMap() {
   const W=c.width, H=c.height;
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
+  // Floor banner
+  ctx.fillStyle = playerFloor===2 ? '#bba0ee' : '#88ddaa';
+  ctx.font='bold 14px Arial'; ctx.textAlign='left';
+  ctx.fillText(playerFloor===2 ? 'FLOOR 2' : 'FLOOR 1', 12, 16);
 
   // World spans x=-22..+44 (w=66), z=-18..+18 (h=36)
   const toM=(wx,wz)=>({ x:20+(wx+22)/66*(W-40), y:20+(wz+18)/36*(H-40) });
@@ -1836,9 +2216,11 @@ function drawBigMap() {
   ctx.strokeStyle='#446644'; ctx.lineWidth=2;
   ctx.strokeRect(ewTL.x,ewTL.y,ewBR.x-ewTL.x,ewBR.y-ewTL.y);
 
-  // Room fills
+  // Room fills — different labels depending on which floor we're on
   const rooms=[[-20,-18,-3,-6],[3,-18,20,-6],[-20,6,-3,18],[3,6,20,18]];
-  const roomLabels=['Classroom A','Classroom B','Classroom C',"Principal's Office"];
+  const roomLabels = playerFloor === 2
+    ? ['Computer Lab','Science Lab',"Teachers' Lounge","Principal's Office"]
+    : ['Classroom A','Classroom B','Classroom C',"Principal's Office"];
   rooms.forEach(([x1,z1,x2,z2],i)=>{
     const a=toM(x1,z1), b=toM(x2,z2);
     ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(a.x,a.y,b.x-a.x,b.y-a.y);
@@ -1847,28 +2229,43 @@ function drawBigMap() {
     ctx.fillStyle='#666'; ctx.font='11px Arial'; ctx.textAlign='center';
     ctx.fillText(roomLabels[i],mx,my);
   });
-  // Library fill
-  const la=toM(22,-18), lb=toM(44,18);
-  ctx.fillStyle='rgba(60,100,60,0.12)'; ctx.fillRect(la.x,la.y,lb.x-la.x,lb.y-la.y);
-  const lm=toM(33,0);
-  ctx.fillStyle='#557755'; ctx.font='11px Arial'; ctx.textAlign='center';
-  ctx.fillText('Library',lm.x,lm.y);
+  // Library fill — only on floor 1
+  if (playerFloor === 1) {
+    const la=toM(22,-18), lb=toM(44,18);
+    ctx.fillStyle='rgba(60,100,60,0.12)'; ctx.fillRect(la.x,la.y,lb.x-la.x,lb.y-la.y);
+    const lm=toM(33,0);
+    ctx.fillStyle='#557755'; ctx.font='11px Arial'; ctx.textAlign='center';
+    ctx.fillText('Library',lm.x,lm.y);
+  } else {
+    // Faded outline of east wing on floor 2 (no rooms there)
+    const la=toM(22,-18), lb=toM(44,18);
+    ctx.strokeStyle='rgba(80,80,80,0.4)';
+    ctx.strokeRect(la.x,la.y,lb.x-la.x,lb.y-la.y);
+  }
+  // Stair marker
+  const stp = toM(18.2, 13.5);
+  ctx.fillStyle='#ddcc66';
+  ctx.fillRect(stp.x-7, stp.y-7, 14, 14);
+  ctx.fillStyle='#000'; ctx.font='bold 10px Arial'; ctx.textAlign='center';
+  ctx.fillText('🪜', stp.x, stp.y+4);
 
   // Hallway label
   const hc=toM(0,0);
   ctx.fillStyle='#444'; ctx.font='12px Arial'; ctx.textAlign='center';
   ctx.fillText('Main Hallway',hc.x,hc.y+4);
 
-  // Lockers
+  // Lockers — only same-floor
   lockers.forEach(l=>{
+    if ((l.floor||1) !== playerFloor) return;
     const p=toM(l.x,l.z);
     ctx.fillStyle='rgba(170,200,221,0.4)';
     ctx.fillRect(p.x-2,p.y-2,4,4);
   });
 
-  // Keys — only show ones the player has discovered (been near)
+  // Keys — only show ones the player has discovered (been near) on same floor
   keyMeshes.forEach(km=>{
     if (km.userData.collected || !km.userData.discovered) return;
+    if ((km.userData.floor||1) !== playerFloor) return;
     const p=toM(km.position.x,km.position.z);
     ctx.fillStyle='#ffd700';
     ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
@@ -1876,9 +2273,10 @@ function drawBigMap() {
     ctx.fillText('K',p.x,p.y+3);
   });
 
-  // Notes — only show discovered ones (close to player)
+  // Notes — only show discovered ones (close to player) on same floor
   noteObjects.forEach(n=>{
     if (n.read) return;
+    if ((n.floor||1) !== playerFloor) return;
     const dx=playerGroup.position.x-n.x, dz=playerGroup.position.z-n.z;
     if (Math.sqrt(dx*dx+dz*dz) > 8) return;
     const p=toM(n.x,n.z);
@@ -1888,19 +2286,25 @@ function drawBigMap() {
     ctx.fillText('N',p.x,p.y+3);
   });
 
-  // Exit
-  const ep=toM(0,17.9);
-  ctx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
-  ctx.fillRect(ep.x-14,ep.y-6,28,12);
-  ctx.fillStyle='#fff'; ctx.font='bold 10px Arial'; ctx.textAlign='center';
-  ctx.fillText('EXIT',ep.x,ep.y+4);
+  // Exit (only floor 1)
+  if (playerFloor === 1) {
+    const ep=toM(0,17.9);
+    ctx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
+    ctx.fillRect(ep.x-14,ep.y-6,28,12);
+    ctx.fillStyle='#fff'; ctx.font='bold 10px Arial'; ctx.textAlign='center';
+    ctx.fillText('EXIT',ep.x,ep.y+4);
+  }
 
-  // Teachers
+  // Teachers — only same-floor
   teachers.forEach(t=>{
+    if ((t.floor||1) !== playerFloor) return;
     const p=toM(t.group.position.x,t.group.position.z);
     const col = t.alerted ? '#ff3333' :
                 t.type.id==='rivera'  ? '#cc55cc' :
                 t.type.id==='jenkins' ? '#88ff88' :
+                t.type.id==='walker'  ? '#222222' :
+                t.type.id==='reyes'   ? '#ff8800' :
+                t.type.id==='vex'     ? '#aa44dd' :
                 t.type.gender==='male'? '#4477cc' : '#cc4488';
     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 8px Arial'; ctx.textAlign='center';
@@ -1918,18 +2322,28 @@ function drawBigMap() {
   ctx.fillStyle='#88bbff'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
   ctx.fillText('YOU',pp.x,pp.y-11);
 
-  // Legend
+  // Legend — different for floor 1 vs 2
   ctx.font='11px Arial'; ctx.textAlign='left';
-  const leg=[
+  const legF1=[
     ['#4477cc','Male teacher'],
     ['#cc4488','Female teacher'],
     ['#cc55cc','Ms. Rivera'],
-    ['#88ff88','Janitor (Jenkins)'],
+    ['#88ff88','Janitor'],
     ['#ffd700','Key'],
     ['#ddcc88','Note'],
-    ['#aaccdd','Locker'],
+    ['#ddcc66','Stairs'],
     ['#4488ff','You']
   ];
+  const legF2=[
+    ['#222222','Principal Walker'],
+    ['#ff8800','Coach Reyes'],
+    ['#aa44dd','Dr. Vex'],
+    ['#ffd700','Key'],
+    ['#ddcc88','Note'],
+    ['#ddcc66','Stairs'],
+    ['#4488ff','You']
+  ];
+  const leg = playerFloor === 2 ? legF2 : legF1;
   leg.forEach(([col,label],i)=>{
     ctx.fillStyle=col; ctx.fillRect(24, H-38-i*18, 10, 10);
     ctx.fillStyle='#aaa'; ctx.fillText(label, 38, H-30-i*18);
@@ -1945,16 +2359,29 @@ miniCanvas.width=miniCanvas.height=140;
 function toMini(wx,wz){ return{x:10+(wx+22)/66*120,y:10+(wz+18)/36*120}; }
 
 function drawMinimap() {
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
   miniCtx.clearRect(0,0,140,140);
   miniCtx.fillStyle='rgba(0,0,0,0.7)'; miniCtx.fillRect(0,0,140,140);
+  // Floor indicator (small label at top-left of minimap)
+  miniCtx.fillStyle = playerFloor===2 ? '#bba0ee' : '#88ddaa';
+  miniCtx.font='bold 9px Arial'; miniCtx.textAlign='left';
+  miniCtx.fillText(playerFloor===2 ? 'F2' : 'F1', 4, 12);
   // Main building outline
   miniCtx.strokeStyle='#888'; miniCtx.lineWidth=1.5;
   const ma=toMini(-22,-18),mb=toMini(22,18);
   miniCtx.strokeRect(ma.x,ma.y,mb.x-ma.x,mb.y-ma.y);
-  // East wing outline
-  miniCtx.strokeStyle='#446644'; miniCtx.lineWidth=1.2;
-  const ea=toMini(22,-18),eb=toMini(44,18);
-  miniCtx.strokeRect(ea.x,ea.y,eb.x-ea.x,eb.y-ea.y);
+  // East wing outline (only on floor 1)
+  if (playerFloor === 1) {
+    miniCtx.strokeStyle='#446644'; miniCtx.lineWidth=1.2;
+    const ea=toMini(22,-18),eb=toMini(44,18);
+    miniCtx.strokeRect(ea.x,ea.y,eb.x-ea.x,eb.y-ea.y);
+  }
+  // Stair marker
+  const sp = toMini(18.2, 13.5);
+  miniCtx.fillStyle='#ddcc66';
+  miniCtx.fillRect(sp.x-3, sp.y-3, 6, 6);
+  miniCtx.fillStyle='#000'; miniCtx.font='bold 7px Arial'; miniCtx.textAlign='center';
+  miniCtx.fillText('S', sp.x, sp.y+2);
   miniCtx.strokeStyle='#555'; miniCtx.lineWidth=0.8;
   [[-20,-18,-3,-6],[3,-18,20,-6],[-20,6,-3,18],[3,6,20,18]].forEach(([x1,z1,x2,z2])=>{
     const a=toMini(x1,z1),b=toMini(x2,z2); miniCtx.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);
@@ -1963,21 +2390,24 @@ function drawMinimap() {
   const ep=toMini(0,18);
   miniCtx.fillStyle=keysCollected>=totalKeys?'#44ff44':'#ff4444';
   miniCtx.fillRect(ep.x-6,ep.y-4,12,8);
-  // Lockers (faint)
+  // Lockers (faint) — only show same-floor lockers
   miniCtx.fillStyle='rgba(170,200,221,0.35)';
   lockers.forEach(l=>{
+    if ((l.floor||1) !== playerFloor) return;
     const p=toMini(l.x,l.z);
     miniCtx.fillRect(p.x-1, p.y-1, 2, 2);
   });
-  // Keys — only show ones the player has discovered (been near)
+  // Keys — only show ones the player has discovered (been near) on same floor
   keyMeshes.forEach(km=>{
     if (km.userData.collected || !km.userData.discovered) return;
+    if ((km.userData.floor||1) !== playerFloor) return;
     const p=toMini(km.position.x,km.position.z);
     miniCtx.fillStyle='#ffd700'; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,3.5,0,Math.PI*2); miniCtx.fill();
   });
   // Notes (only unread + close enough to "discover")
   noteObjects.forEach(n=>{
     if (n.read) return;
+    if ((n.floor||1) !== playerFloor) return;
     const dx=playerGroup.position.x-n.x, dz=playerGroup.position.z-n.z;
     if (Math.sqrt(dx*dx+dz*dz) > 6) return;
     const p=toMini(n.x,n.z);
@@ -1990,12 +2420,16 @@ function drawMinimap() {
     miniCtx.fillStyle='#88ddee';
     miniCtx.beginPath(); miniCtx.arc(p.x,p.y,2,0,Math.PI*2); miniCtx.fill();
   });
-  // Teachers
+  // Teachers — only show same-floor ones
   teachers.forEach(t=>{
+    if ((t.floor||1) !== playerFloor) return;
     const p=toMini(t.group.position.x,t.group.position.z);
     const col = t.alerted ? '#ff2222' :
                 t.type.id==='rivera'  ? '#cc55cc' :
                 t.type.id==='jenkins' ? '#88ff88' :
+                t.type.id==='walker'  ? '#222222' :
+                t.type.id==='reyes'   ? '#ff8800' :
+                t.type.id==='vex'     ? '#aa44dd' :
                 t.type.gender==='male'? '#4477cc' : '#cc4488';
     miniCtx.fillStyle=col; miniCtx.beginPath(); miniCtx.arc(p.x,p.y,4,0,Math.PI*2); miniCtx.fill();
   });
@@ -2082,7 +2516,13 @@ function resumeGame() {
   renderer.domElement.requestPointerLock();
 }
 function alertNearbyTeachers(x,z,radius,exclude) {
-  teachers.forEach(t=>{ if(t===exclude)return; const dx=t.group.position.x-x,dz=t.group.position.z-z; if(Math.sqrt(dx*dx+dz*dz)<radius){t.alerted=true;t.alertTimer=250;} });
+  const playerFloor = entityFloor(playerGroup.position.y) + 1;
+  teachers.forEach(t=>{
+    if(t===exclude) return;
+    if((t.floor||1) !== playerFloor) return;  // sound doesn't carry between floors
+    const dx=t.group.position.x-x, dz=t.group.position.z-z;
+    if(Math.sqrt(dx*dx+dz*dz)<radius){ t.alerted=true; t.alertTimer=250; }
+  });
 }
 
 // ─── OUTCOME TOAST ────────────────────────────────────────────────────────────
@@ -2250,7 +2690,12 @@ function updateKeys(){
   const px=playerGroup.position.x, pz=playerGroup.position.z;
   keyMeshes.forEach(km=>{
     if(km.userData.collected)return;
-    km.position.y=0.8+Math.sin(Date.now()*0.003+km.userData.index)*0.12; km.rotation.z+=0.03;
+    km.position.y = km.userData.baseY + Math.sin(Date.now()*0.003+km.userData.index)*0.12;
+    km.rotation.z+=0.03;
+    // Only same-floor keys are reachable
+    const keyFloor = km.userData.floor || 1;
+    const playerFloor = entityFloor(playerGroup.position.y) + 1; // 1 or 2
+    if (keyFloor !== playerFloor) return;
     const dx=px-km.position.x, dz=pz-km.position.z;
     const dist=Math.sqrt(dx*dx+dz*dz);
     // Mark as discovered when player gets within 3 units (reveals on map)
@@ -2271,6 +2716,8 @@ function updateKeys(){
 
 function checkExit(){
   if(keysCollected<totalKeys)return;
+  // Must be on floor 1 (the exit is on the ground floor)
+  if(playerGroup.position.y > 0.5) return;
   // Player walks through the physical gap in the south wall
   if(Math.abs(playerGroup.position.x)<EXIT_X && playerGroup.position.z>EXIT_Z){
     escaped=true; gameRunning=false;
@@ -2323,13 +2770,12 @@ function updatePlayer(){
   if (isHiding) {
     const l = hidingLocker;
     playerGroup.visible = false;
-    camera.position.set(l.x, 1.35, l.z);
-    // In first person we let mouse look freely; in 3rd person we still respect
-    // camYaw but keep the camera locked inside the locker.
+    const baseY = (l.y || 0) + 1.35;
+    camera.position.set(l.x, baseY, l.z);
     const pitch = firstPerson ? camPitch : 0;
     camera.lookAt(
       l.x + Math.sin(camYaw)*10,
-      1.35 + Math.sin(pitch)*10,
+      baseY + Math.sin(pitch)*10,
       l.z + Math.cos(camYaw)*10
     );
     return;
@@ -2403,10 +2849,17 @@ function updatePlayer(){
   const speedFactor = sprinting ? 1.6 : sneaking ? 0.6 : 1.0;
   animatePlayerLimbs(len>0, speedFactor);
 
+  // ── STAIRCASE — runs every frame so the player follows the ramp smoothly ──
+  if (inStairZone(playerGroup.position.x, playerGroup.position.z)) {
+    playerGroup.position.y = stairYForZ(playerGroup.position.z);
+  } else if (playerGroup.position.y > 0.05 && playerGroup.position.y < FLOOR2_Y - 0.05) {
+    playerGroup.position.y = playerGroup.position.y > FLOOR2_Y/2 ? FLOOR2_Y : 0;
+  }
+
   // Camera
   if(firstPerson){
     playerGroup.visible=false;
-    const camY = sneaking ? 0.95 : 1.55;
+    const camY = playerGroup.position.y + (sneaking ? 0.95 : 1.55);
     camera.position.set(playerGroup.position.x, camY, playerGroup.position.z);
     camera.lookAt(
       playerGroup.position.x+Math.sin(camYaw)*Math.cos(camPitch)*10,
@@ -2414,20 +2867,20 @@ function updatePlayer(){
       playerGroup.position.z+Math.cos(camYaw)*Math.cos(camPitch)*10
     );
   } else {
-    playerGroup.visible=true;
     const camOffX=-Math.sin(camYaw), camOffZ=-Math.cos(camYaw);
-    // Walk inward from ideal distance; default to 0 so a fully-blocked scan
-    // puts the camera at the player rather than through a wall
-    let targetDist=0;
-    for(let d=CAM_BACK; d>=0; d-=0.1){
+    // Walk inward from ideal distance, but never closer than MIN_CAM_DIST so
+    // we don't end up inside the player mesh / behind a wall.
+    let targetDist=MIN_CAM_DIST;
+    for(let d=CAM_BACK; d>=MIN_CAM_DIST; d-=0.1){
       if(!collidesWithWalls(playerGroup.position.x+camOffX*d, playerGroup.position.z+camOffZ*d, 0.22)){
         targetDist=d; break;
       }
     }
     // Snap in instantly (never clip), ease out slowly (no pop-back through walls)
     if(targetDist < currentCamDist) currentCamDist=targetDist;
-    else currentCamDist += (targetDist-currentCamDist)*0.08;
-    // hDist is purely horizontal behind-distance; height uses CAM_DIST so pitch orbit stays tall
+    else currentCamDist += (targetDist-currentCamDist)*0.10;
+    // Hide player mesh when camera is right behind their head to avoid clipping artifacts
+    playerGroup.visible = currentCamDist > 0.95;
     const hDist = currentCamDist;
     const camY  = playerGroup.position.y + 1.0 + CAM_DIST * Math.sin(camPitch3);
     camera.position.set(
@@ -2445,15 +2898,27 @@ const timerDisplay=document.getElementById('timer-display');
 function updateStatus(){
   const sneaking =(keys['KeyC']);
   const sprinting=isSprinting;
-  // Crouch indicator highlight
   if(sneaking) crouchKeyEl.classList.add('active');
   else         crouchKeyEl.classList.remove('active');
-  // Timer
   const elapsed=Math.max(0, Date.now()-startTime-pausedDuration);
   const totalSec=Math.floor(elapsed/1000);
   const mins=Math.floor(totalSec/60);
   const secs=(totalSec%60).toString().padStart(2,'0');
   timerDisplay.textContent=`⏱ ${mins}:${secs}`;
+  // Floor badge
+  const floorBadge = document.getElementById('floor-badge');
+  const onStairs = inStairZone(playerGroup.position.x, playerGroup.position.z);
+  const onFloor2 = entityFloor(playerGroup.position.y) === 1;
+  if (onStairs) {
+    floorBadge.textContent = '🪜 STAIRS';
+    floorBadge.classList.remove('floor2');
+  } else if (onFloor2) {
+    floorBadge.textContent = '🏫 FLOOR 2';
+    floorBadge.classList.add('floor2');
+  } else {
+    floorBadge.textContent = '🏫 FLOOR 1';
+    floorBadge.classList.remove('floor2');
+  }
   if(isHiding)               statusBar.innerHTML='🚪 <b>Hidden in locker</b> — teachers can\'t see you &nbsp;|&nbsp; press F to step out';
   else if(settingsOpen)      statusBar.innerHTML='⚙️ <b>Settings open</b> — press Enter to close';
   else if(mapOpen)           statusBar.innerHTML='🗺️ <b>Map open</b> — press M to close';

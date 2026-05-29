@@ -2561,13 +2561,15 @@ function checkDoorInteraction(){
     return;
   }
 
-  // Check for note nearby (highest priority interaction when not in door/shelf zone)
+  // Check for note nearby — notes use F, books use E, so they can coexist
+  // even when a note sits right next to a bookshelf.
   const note = nearestNote();
-  if (note && !isNearShelf()) {
+  if (note) {
     actionPrompt.style.display='block';
     apKey.textContent='F'; apText.textContent='Read note';
     if (fJustPressed) { openNote(note); lockerHoldFrames = 0; return; }
     lockerHoldFrames = 0;
+    // DON'T return here — fall through so the book pickup prompt can also show
   } else {
     // Check for locker nearby — requires HOLDING F to climb in
     const locker = nearestLocker();
